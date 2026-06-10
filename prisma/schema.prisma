@@ -1,0 +1,161 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PartnerTier {
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  orders        Order[]
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  category      String      // Fresh Fruits, Fresh Vegetables, Dairy, Honey, Organic Juices, Cold Pressed Oils, Pickles
+  description   String      @db.Text
+  benefits      String      @db.Text
+  nutrition     String      @db.Text
+  price         Float
+  image         String      // path to public folder e.g., /honey.png
+  rating        Float       @default(5.0)
+  stock         Int         @default(100)
+  isOrganic     Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          OrderStatus @default(PENDING)
+  totalAmount     Float
+  shippingAddress String      @db.Text
+  paymentStatus   String      @default("PENDING") // PENDING, PAID, FAILED
+  paymentMethod   String      @default("STRIPE")
+  couponCode      String?
+  discountApplied Float       @default(0.0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Farmer {
+  id               String   @id @default(cuid())
+  fullName         String
+  phone            String
+  state            String
+  district         String
+  farmSizeAcres    Float
+  primaryCrops     String
+  procurementModel String   // Contract, Market, Co-op
+  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt        DateTime @default(now())
+}
+
+model Partner {
+  id               String      @id @default(cuid())
+  fullName         String
+  email            String
+  phone            String
+  companyName      String?
+  tier             PartnerTier
+  experienceYears  Int
+  investmentBudget Float
+  status           String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt        DateTime    @default(now())
+}
+
+model InvestorLead {
+  id               String   @id @default(cuid())
+  fullName         String
+  email            String
+  phone            String
+  investmentRange  String   // e.g. "$10k-$50k", "$50k-$200k", "$200k+"
+  accreditedStatus Boolean  @default(false)
+  message          String?  @db.Text
+  status           String   @default("NEW") // NEW, CONTACTED, QUALIFIED, ARCHIVED
+  createdAt        DateTime @default(now())
+}
+
+model EmployeeApplication {
+  id         String   @id @default(cuid())
+  fullName   String
+  email      String
+  phone      String
+  position   String   // Job title
+  resumeUrl  String?  // PDF file path or url
+  coverLetter String? @db.Text
+  status     String   @default("APPLIED") // APPLIED, REVIEWING, INTERVIEWING, OFFERED, REJECTED
+  createdAt  DateTime @default(now())
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  category    String   // Agriculture, Dairy, Honey, Organic Living, Food Processing
+  summary     String   @db.Text
+  content     String   @db.Text
+  image       String   // e.g., /honey.png
+  authorName  String   @default("Mahesh Rao")
+  readTimeMin Int      @default(5)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String   @db.Text
+  status    String   @default("UNREAD") // UNREAD, READ, RESOLVED
+  createdAt DateTime @default(now())
+}
