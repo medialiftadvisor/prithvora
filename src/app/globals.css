@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=League+Spartan:wght@300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -13,14 +14,14 @@
   --color-spruce: #0d2216;
   --color-offwhite: #f4f7f5;
 
-  --font-sans: var(--font-inter);
-  --font-league: var(--font-league-spartan);
-  --font-inter: var(--font-inter);
+  --font-sans: "Inter", sans-serif;
+  --font-league: "League Spartan", sans-serif;
+  --font-inter: "Inter", sans-serif;
 }
 
 :root {
-  --font-sans: var(--font-inter);
-  --font-league: var(--font-league-spartan);
+  --font-sans: "Inter", sans-serif;
+  --font-league: "League Spartan", sans-serif;
 }
 
 body {

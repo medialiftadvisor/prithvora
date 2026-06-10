@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { League_Spartan, Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import CartSidebar from "@/components/layout/CartSidebar";
 import Providers from "@/components/layout/Providers";
 
-const leagueSpartan = League_Spartan({
-  subsets: ["latin"],
-  variable: "--font-league-spartan",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "PRITHVORA AGRIVERSE | From Farmers' Dreams to Every Family's Table",
@@ -52,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`}>
+    <html lang="en">
       <body className="antialiased font-sans bg-offwhite text-spruce">
         <Providers>
           <div className="flex flex-col min-h-screen">
