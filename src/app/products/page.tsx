@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { Search, Heart, ShoppingBag, Eye, X, Check, ArrowRight, ShieldCheck, HeartOff } from 'lucide-react';
@@ -135,7 +135,7 @@ const PRODUCTS: ProductData[] = [
   }
 ];
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -621,5 +621,17 @@ export default function ProductsPage() {
       )}
 
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-offwhite flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }
