@@ -9,7 +9,7 @@ export default function CareersPage() {
     name: '',
     email: '',
     phone: '',
-    position: 'Agronomy Specialist',
+    position: 'Agronomy & Soil Health Advisor',
     resume: '',
     coverLetter: ''
   });
@@ -19,7 +19,7 @@ export default function CareersPage() {
     setFormSubmitted(true);
     setTimeout(() => {
       setFormSubmitted(false);
-      setForm({ name: '', email: '', phone: '', position: 'Agronomy Specialist', resume: '', coverLetter: '' });
+      setForm({ name: '', email: '', phone: '', position: 'Agronomy & Soil Health Advisor', resume: '', coverLetter: '' });
     }, 5000);
   };
 
@@ -32,25 +32,49 @@ export default function CareersPage() {
 
   const jobs = [
     {
-      title: 'Agronomy Cluster Specialist',
+      title: 'Agronomy & Soil Health Advisor',
       department: 'Farm Operations',
-      location: 'Karnal, Haryana (On-field)',
+      location: 'Behror Hub, Rajasthan (On-field)',
       type: 'Full-Time',
-      desc: 'Work directly with farming groups, managing soil testing diagnostics, organic certification audits, and bio-fertilizer pooling.'
+      desc: 'Design organic farming protocols, execute soil chemistry diagnostics, and train regional Rajasthan farmer clusters on bio-composting and water conservation. Perform regular audits for organic compliance.',
+      experience: '3+ Years in Organic Farming Support or Agronomy Research',
+      qualifications: 'B.Sc. or M.Sc. in Agriculture, Agronomy, or Soil Science'
     },
     {
-      title: 'Supply Chain Operations Manager',
+      title: 'Cold Chain Supply Logistics Manager',
       department: 'Logistics',
-      location: 'Gurugram HQs (Hybrid)',
+      location: 'Behror Hub, Rajasthan (On-site)',
       type: 'Full-Time',
-      desc: 'Optimize cold-chain logistics, routing insulated truck fleets from rural collection plants to urban micro-hubs.'
+      desc: 'Optimize insulated fleet routing, manage cold-chain temperature-controlled transport of dairy, honey, and juices from Behror facilities to Pan-India micro-distribution hubs. Monitor real-time GPS sensors.',
+      experience: '4+ Years in Cold Chain Management or FMCG/Dairy Logistics',
+      qualifications: 'MBA or Bachelor\'s Degree in Supply Chain Management or Operations'
     },
     {
-      title: 'Lead E-Commerce Developer',
-      department: 'Engineering',
-      location: 'Gurugram HQs (Hybrid)',
+      title: 'Food Processing Plant Supervisor',
+      department: 'Manufacturing & Quality',
+      location: 'Behror Facility, Rajasthan (On-site)',
       type: 'Full-Time',
-      desc: 'Maintain and scale our Next.js web application, cart caching, user dashboards, and order tracking integrations.'
+      desc: 'Supervise daily operations of wood-pressing oil mills, A2 pasteurizers, and raw honey filtration systems. Enforce strict HACCP food safety standards and laboratory purity checklists.',
+      experience: '2+ Years in Food Processing or Beverage Manufacturing',
+      qualifications: 'B.Tech or Diploma in Food Technology, Dairy Engineering, or Biotechnology'
+    },
+    {
+      title: 'Lead Full-Stack Web Engineer',
+      department: 'Engineering',
+      location: 'Remote / Jaipur / NCR (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Maintain and scale our Next.js web platform, database integrations, farmer SMS notifications, and e-commerce checkout. Collaborate with product design to build luxury web UI/UX solutions.',
+      experience: '5+ Years in React, Next.js, TypeScript, PostgreSQL, and Node.js',
+      qualifications: 'B.Tech / B.E. / MCA in Computer Science or related engineering field'
+    },
+    {
+      title: 'Accredited Investor Relations Director',
+      department: 'Finance & Strategy',
+      location: 'Jaipur / Gurugram (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Act as the primary point of contact for accredited venture funds, corporate backers, and seed angels. Manage capital allocation modeling, financial reporting, and series-A preparation.',
+      experience: '6+ Years in Venture Capital Relations, Investment Banking, or Finance Strategy',
+      qualifications: 'MBA in Finance, CFA Charterholder, or equivalent professional degree'
     }
   ];
 
@@ -105,16 +129,32 @@ export default function CareersPage() {
                 key={idx}
                 className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xs hover:border-primary/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-6"
               >
-                <div className="space-y-3">
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider bg-primary/5 px-2.5 py-1 rounded-md">
-                    {job.department}
-                  </span>
-                  <h3 className="font-league font-bold text-lg text-spruce mt-2">{job.title}</h3>
-                  <div className="flex justify-between text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
-                    <span>{job.location}</span>
-                    <span>{job.type}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[9px] font-bold text-primary uppercase tracking-wider bg-primary/5 px-2.5 py-1 rounded-md">
+                      {job.department}
+                    </span>
+                    <span className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 px-2 py-0.5 rounded">
+                      {job.type}
+                    </span>
                   </div>
-                  <p className="text-xs text-gray-500 leading-relaxed pt-2">{job.desc}</p>
+                  <div>
+                    <h3 className="font-league font-bold text-lg text-spruce leading-tight">{job.title}</h3>
+                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-1">{job.location}</p>
+                  </div>
+                  
+                  <p className="text-xs text-gray-500 leading-relaxed">{job.desc}</p>
+                  
+                  <div className="border-t border-gray-100 pt-3 space-y-2 text-[11px] text-gray-600">
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase block">Required Experience</span>
+                      <p className="font-semibold text-spruce">{job.experience}</p>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-400 uppercase block">Qualifications</span>
+                      <p className="font-semibold text-spruce">{job.qualifications}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -125,7 +165,7 @@ export default function CareersPage() {
                     }}
                     className="w-full py-2.5 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all"
                   >
-                    Apply Now
+                    Apply for Role
                   </button>
                 </div>
               </div>
@@ -181,7 +221,7 @@ export default function CareersPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 99999 99999"
+                    placeholder="+91 96606 86394"
                     value={form.phone}
                     onChange={(e) => setForm({...form, phone: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
@@ -194,9 +234,11 @@ export default function CareersPage() {
                     onChange={(e) => setForm({...form, position: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-white"
                   >
-                    <option>Agronomy Cluster Specialist</option>
-                    <option>Supply Chain Operations Manager</option>
-                    <option>Lead E-Commerce Developer</option>
+                    <option>Agronomy &amp; Soil Health Advisor</option>
+                    <option>Cold Chain Supply Logistics Manager</option>
+                    <option>Food Processing Plant Supervisor</option>
+                    <option>Lead Full-Stack Web Engineer</option>
+                    <option>Accredited Investor Relations Director</option>
                   </select>
                 </div>
               </div>

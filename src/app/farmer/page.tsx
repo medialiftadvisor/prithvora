@@ -56,12 +56,12 @@ const CENTER_DETAILS: Record<string, CenterData> = {
 };
 
 export default function FarmerPage() {
-  const [selectedState, setSelectedState] = useState<string>('haryana');
+  const [selectedState, setSelectedState] = useState<string>('rajasthan');
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: '',
     phone: '',
-    state: 'Haryana',
+    state: 'Rajasthan',
     district: '',
     farmSize: '',
     crop: 'A2 Milk',
@@ -73,7 +73,7 @@ export default function FarmerPage() {
     setFormSubmitted(true);
     setTimeout(() => {
       setFormSubmitted(false);
-      setForm({ name: '', phone: '', state: 'Haryana', district: '', farmSize: '', crop: 'A2 Milk', model: 'Contract Farming' });
+      setForm({ name: '', phone: '', state: 'Rajasthan', district: '', farmSize: '', crop: 'A2 Milk', model: 'Contract Farming' });
     }, 5000);
   };
 
@@ -280,7 +280,7 @@ export default function FarmerPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 99999 99999"
+                    placeholder="+91 96606 86394"
                     value={form.phone}
                     onChange={(e) => setForm({...form, phone: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"

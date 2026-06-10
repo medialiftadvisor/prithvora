@@ -21,7 +21,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "PRITHVORA AGRIVERSE | From Farmers' Dreams to Every Family's Table",
   description: "PRITHVORA AGRIVERSE connects organic farmers directly with modern families, delivering premium dairy, cold pressed oils, honey, fresh produce, and organic juices.",
-  keywords: ["Organic Food", "Dairy", "Honey", "Agriverse", "Farmer", "Gurugram", "Direct to Home", "Cold Pressed Oils", "Next.js 15"],
+  keywords: ["Organic Food", "Dairy", "Honey", "Agriverse", "Farmer", "Behror", "Rajasthan", "Pan-India Delivery", "Direct to Home", "Cold Pressed Oils", "Next.js 15"],
   openGraph: {
     title: "PRITHVORA AGRIVERSE",
     description: "Premium sustainable agriculture, farm-fresh dairy, honey, and organic cold-pressed items direct from Indian farms.",

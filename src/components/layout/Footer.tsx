@@ -154,16 +154,16 @@ export default function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4.5 h-4.5 text-primary-light flex-shrink-0 mt-0.5" />
                 <span>
-                  Prithvora Agriverse HQs,
+                  Prithvora Agriverse Hub,
                   <br />
-                  Farm-Tech Park, Sector 62,
+                  Behror, Rajasthan 301701
                   <br />
-                  Gurugram, HR, India
+                  Rajasthan, India
                 </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4.5 h-4.5 text-primary-light flex-shrink-0" />
-                <span>+91 99999 99999</span>
+                <span>+91 96606 86394</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4.5 h-4.5 text-primary-light flex-shrink-0" />

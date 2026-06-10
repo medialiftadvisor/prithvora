@@ -22,7 +22,7 @@ export default function ContactPage() {
     }, 5000);
   };
 
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919999999999';
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919660686394';
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=Hello%20Prithvora%20Agriverse!%20I%20am%20interested%20in%20your%20organic%20offerings.`;
 
   return (
@@ -56,9 +56,9 @@ export default function ContactPage() {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Office Headquarters</span>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Primary Hub &amp; Processing Facility</span>
                     <span className="font-semibold text-spruce block mt-1">
-                      Prithvora Agriverse HQs, Farm-Tech Park, Sector 62, Gurugram, Haryana - 122001
+                      Prithvora Agriverse Hub, Behror, Rajasthan - 301701
                     </span>
                   </div>
                 </li>
@@ -69,7 +69,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Direct Phone Lines</span>
-                    <span className="font-semibold text-spruce block mt-1">+91 99999 99999</span>
+                    <span className="font-semibold text-spruce block mt-1">+91 96606 86394</span>
                   </div>
                 </li>
 
@@ -153,7 +153,7 @@ export default function ContactPage() {
                     <label className="text-[10px] font-bold text-gray-500 uppercase">Phone (Optional)</label>
                     <input
                       type="tel"
-                      placeholder="+91 99999 99999"
+                      placeholder="+91 96606 86394"
                       value={form.phone}
                       onChange={(e) => setForm({...form, phone: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
@@ -203,7 +203,7 @@ export default function ContactPage() {
         {/* Embedded Map Section */}
         <section className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-xs">
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3506.012586207036!2d77.06584281507982!3d28.46977268248231!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390d19e0787e9cfb%3A0xc3cf9c9a2c3f875f!2sSector%2062%2C%20Gurugram%2C%20Haryana!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14197.801662908272!2d76.28014524458008!3d27.887373500000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3972c219660c0429%3A0xc3fcd7645167b5b5!2sBehror%2C%20Rajasthan%20301701!5e0!3m2!1sen!2sin!4v1680000000000!5m2!1sen!2sin"
             width="100%"
             height="400"
             style={{ border: 0 }}

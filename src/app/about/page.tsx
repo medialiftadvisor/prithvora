@@ -33,11 +33,11 @@ export default function AboutPage() {
   ];
 
   const milestones = [
-    { year: '2022', title: 'The Co-Operative Seed', desc: 'Started with a localized group of 150 dairy farmers in Haryana, setting up our first smart chilling center.' },
-    { year: '2023', title: 'Organic Diversification', desc: 'Introduced natural wild forest honey and wood-pressed oils. Secured certifications for sustainable agriculture.' },
+    { year: '2022', title: 'The Co-Operative Seed', desc: 'Started with a localized group of 150 dairy farmers in Behror, Rajasthan, setting up our first smart chilling center.' },
+    { year: '2023', title: 'Organic Diversification', desc: 'Introduced natural wild forest honey and wood-pressed oils. Secured organic farming certifications.' },
     { year: '2024', title: 'Cold-Chain Technology', desc: 'Deployed real-time GPS tracking and chilling monitors across our transport fleets to guarantee freshness.' },
-    { year: '2025', title: 'Corporate Expansion', desc: 'Opened our Farm-Tech headquarters in Gurugram, scaling our supply chain to serve over 50,000 households.' },
-    { year: '2026', title: 'Agriverse Integration', desc: 'Launched the integrated Agriverse portal, establishing collection hubs across 5 major Indian states.' },
+    { year: '2025', title: 'Primary Processing Facility', desc: 'Opened our flagship processing hub in Behror, Rajasthan, scaling our supply chain to serve over 50,000 households.' },
+    { year: '2026', title: 'Agriverse Integration', desc: 'Launched the integrated Agriverse portal, establishing collection hubs and targeting Pan-India delivery.' },
   ];
 
   return (
@@ -131,7 +131,7 @@ export default function AboutPage() {
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">4</div>
                 <div>
                   <h4 className="font-semibold text-spruce text-sm">Doorstep Delivery</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Goods reach consumer homes in Gurugram and Delhi NCR within 24 hours of farm packaging.</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Goods reach consumer homes in Rajasthan, Delhi NCR, and major cities Pan-India within 24 hours of packaging.</p>
                 </div>
               </div>
             </div>

@@ -132,6 +132,62 @@ const PRODUCTS: ProductData[] = [
     rating: 4.9,
     stock: 110,
     isOrganic: true
+  },
+  {
+    id: 'prod_ghee_01',
+    name: 'Vedic Gir Cow A2 Ghee',
+    slug: 'vedic-gir-cow-a2-ghee',
+    category: 'Vedic Ghee',
+    price: 1450,
+    image: '/dairy.png',
+    description: 'Premium A2 ghee prepared strictly via the traditional Vedic Bilona curd-churning method. Handcrafted in Rajasthan from native Gir cows.',
+    benefits: 'Enhances cognitive health, lubricates joints, aids fat-soluble vitamin absorption, high smoke point.',
+    nutrition: 'Butyric Acid: 4.8g, Cultured Milk Fats: 99.8g, Saturated Fats: 68g (per 100g)',
+    rating: 5.0,
+    stock: 80,
+    isOrganic: true
+  },
+  {
+    id: 'prod_ghee_02',
+    name: 'Vedic Cultured Buffalo Ghee',
+    slug: 'vedic-cultured-buffalo-ghee',
+    category: 'Vedic Ghee',
+    price: 950,
+    image: '/dairy.png',
+    description: 'Aromatic Vedic Bilona ghee handcrafted from the cultured curd of grass-fed Murrah buffaloes in Behror.',
+    benefits: 'Excellent source of healthy fats, promotes robust immunity, nourishes skin tissues.',
+    nutrition: 'Murrah Buffalo Curd Fats: 99.7g, Conjugated Linoleic Acid: 1.2g (per 100g)',
+    rating: 4.9,
+    stock: 95,
+    isOrganic: true
+  },
+  {
+    id: 'prod_spice_01',
+    name: 'Stone-Ground Organic Turmeric',
+    slug: 'stone-ground-organic-turmeric',
+    category: 'Organic Spices',
+    price: 125,
+    image: '/produce.png',
+    description: 'Dry turmeric rhizomes slowly stone-ground (Chakki method) at low temperatures to retain high curcumin levels.',
+    benefits: 'Powerful anti-inflammatory agent, active cell antioxidant, enhances natural skin glow.',
+    nutrition: 'Curcumin Active: 4.8%, Dietary Fiber: 21g, Iron: 41mg (per 100g)',
+    rating: 4.9,
+    stock: 180,
+    isOrganic: true
+  },
+  {
+    id: 'prod_spice_02',
+    name: 'Stone-Ground Kashmiri Chilli',
+    slug: 'stone-ground-kashmiri-chilli',
+    category: 'Organic Spices',
+    price: 180,
+    image: '/produce.png',
+    description: 'Premium Kashmiri red chillies stone-ground slowly. Imparts rich deep red color with a mild, smoky heat.',
+    benefits: 'Boosts metabolic rate, aids respiratory pathways, rich in Beta-Carotene and Vitamin A.',
+    nutrition: 'Capsaicin Level: Mild, Vitamin A: 85% DV, Potassium: 340mg (per 100g)',
+    rating: 4.8,
+    stock: 150,
+    isOrganic: true
   }
 ];
 
@@ -162,7 +218,7 @@ function ProductsContent() {
   });
   const [orderTrackCode, setOrderTrackCode] = useState('');
 
-  const categories = ['All', 'Fresh Fruits', 'Fresh Vegetables', 'Dairy', 'Honey', 'Organic Juices', 'Cold Pressed Oils', 'Pickles'];
+  const categories = ['All', 'Fresh Fruits', 'Fresh Vegetables', 'Dairy', 'Vedic Ghee', 'Honey', 'Organic Juices', 'Cold Pressed Oils', 'Organic Spices', 'Pickles'];
 
   // Filter products
   const filteredProducts = PRODUCTS.filter((p) => {
@@ -238,7 +294,7 @@ function ProductsContent() {
                     <input
                       type="tel"
                       required
-                      placeholder="+91 99999 99999"
+                      placeholder="+91 96606 86394"
                       value={shippingInfo.phone}
                       onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary"
@@ -251,7 +307,7 @@ function ProductsContent() {
                   <textarea
                     required
                     rows={3}
-                    placeholder="Corporate HQs, Farm-Tech Park, Sector 62"
+                    placeholder="Behror Hub, Industrial Area"
                     value={shippingInfo.address}
                     onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary"
@@ -264,7 +320,7 @@ function ProductsContent() {
                     <input
                       type="text"
                       required
-                      placeholder="Gurugram"
+                      placeholder="Behror"
                       value={shippingInfo.city}
                       onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary"
@@ -275,7 +331,7 @@ function ProductsContent() {
                     <input
                       type="text"
                       required
-                      placeholder="Haryana"
+                      placeholder="Rajasthan"
                       value={shippingInfo.state}
                       onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary"

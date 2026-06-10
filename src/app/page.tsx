@@ -16,10 +16,50 @@ import { useCartStore } from '@/store/useCartStore';
 
 // Mock products for the product carousel section
 const CAROUSEL_PRODUCTS = [
-  { id: 'prod_honey_01', name: 'Raw Wildflower Honey', category: 'Honey', price: 450, image: '/honey.png', desc: 'Cold extracted pure wildflower honey.' },
-  { id: 'prod_dairy_01', name: 'A2 Gir Cow Milk', category: 'Dairy', price: 95, image: '/dairy.png', desc: 'Grass-fed native Gir cow A2 milk.' },
-  { id: 'prod_oil_01', name: 'Cold Pressed Yellow Mustard Oil', category: 'Cold Pressed Oils', price: 260, image: '/oils.png', desc: 'Traditional wood-pressed seed oil.' },
-  { id: 'prod_juice_01', name: 'Cold-Pressed Pomegranate Juice', category: 'Organic Juices', desc: '100% natural, hydraulic cold pressed.', price: 180, image: '/juices.png' },
+  { 
+    id: 'prod_honey_01', 
+    name: 'Raw Wildflower Honey', 
+    category: 'Honey', 
+    price: 450, 
+    image: '/honey.png', 
+    desc: 'Cold extracted pure wildflower honey.',
+    origin: 'Himachal Meadows & Rajasthan Apiaries',
+    benefits: 'Boosts immunity, natural enzyme healer, high antioxidants',
+    nutrition: 'Energy: 304 kcal | Carbs: 82g (per 100g)'
+  },
+  { 
+    id: 'prod_dairy_01', 
+    name: 'A2 Gir Cow Milk', 
+    category: 'Dairy', 
+    price: 95, 
+    image: '/dairy.png', 
+    desc: 'Grass-fed native Gir cow A2 milk.',
+    origin: 'Behror Chilling Center, Rajasthan',
+    benefits: 'High digestibility, rich in calcium and vitamin D3, zero hormones',
+    nutrition: 'Protein: 3.3g | Calcium: 120mg | Fats: 3.8% (per 100ml)'
+  },
+  { 
+    id: 'prod_oil_01', 
+    name: 'Cold Pressed Yellow Mustard Oil', 
+    category: 'Cold Pressed Oils', 
+    price: 260, 
+    image: '/oils.png', 
+    desc: 'Traditional wood-pressed seed oil.',
+    origin: 'Rajasthan Yellow Mustard Clusters',
+    benefits: 'Heart-healthy MUFAs, high smoke point, natural pungent aroma',
+    nutrition: 'MUFAs: 60g | Omega-3: 10g | Polyunsats: 21g (per 100ml)'
+  },
+  { 
+    id: 'prod_juice_01', 
+    name: 'Cold-Pressed Pomegranate Juice', 
+    category: 'Organic Juices', 
+    price: 180, 
+    image: '/juices.png',
+    desc: '100% natural, hydraulic cold pressed.',
+    origin: 'Rajasthan Organic Pom Orchards',
+    benefits: 'Anti-inflammatory, rich in vitamin C, boosts hemoglobin',
+    nutrition: 'Vit C: 45% DV | Potassium: 290mg | Sugars: 12g (per 100ml)'
+  },
 ];
 
 const FINANCIAL_PROJECTS = [
@@ -256,43 +296,66 @@ export default function HomePage() {
           </div>
 
           {/* Carousel container */}
-          <div className="max-w-lg mx-auto bg-white text-spruce rounded-3xl p-6 sm:p-8 shadow-2xl relative border border-gray-100">
-            <div className="flex gap-6 items-center">
-              <div className="w-1/2 aspect-square bg-offwhite rounded-2xl flex items-center justify-center p-6">
-                <img 
-                  src={CAROUSEL_PRODUCTS[carouselIndex].image} 
-                  alt={CAROUSEL_PRODUCTS[carouselIndex].name}
-                  className="object-contain w-36 h-36"
-                />
-              </div>
-              <div className="w-1/2 space-y-4">
-                <div>
-                  <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{CAROUSEL_PRODUCTS[carouselIndex].category}</span>
-                  <h3 className="font-league font-bold text-lg text-spruce leading-tight mt-0.5">{CAROUSEL_PRODUCTS[carouselIndex].name}</h3>
-                  <p className="text-[11px] text-gray-400 italic mt-1">{CAROUSEL_PRODUCTS[carouselIndex].desc}</p>
+          <div className="max-w-4xl mx-auto bg-white text-spruce rounded-3xl p-6 sm:p-10 shadow-2xl relative border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+              {/* Product Image and quick buy */}
+              <div className="md:col-span-5 flex flex-col items-center space-y-6">
+                <div className="w-full aspect-square bg-offwhite rounded-2xl flex items-center justify-center p-8 border border-gray-100/50">
+                  <img 
+                    src={CAROUSEL_PRODUCTS[carouselIndex].image} 
+                    alt={CAROUSEL_PRODUCTS[carouselIndex].name}
+                    className="object-contain max-h-56 w-auto hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <div className="space-y-3">
-                  <span className="text-xl font-black text-spruce">₹{CAROUSEL_PRODUCTS[carouselIndex].price}</span>
-                  <button
-                    onClick={() => {
-                      addToCart(CAROUSEL_PRODUCTS[carouselIndex], 1);
-                    }}
-                    className="w-full py-2 bg-primary text-white font-league font-bold text-xs tracking-wider uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                    Add to Cart
-                  </button>
+                <div className="w-full flex items-center justify-between px-2">
+                  <span className="text-2xl font-black text-spruce">₹{CAROUSEL_PRODUCTS[carouselIndex].price}</span>
+                  <span className="text-[10px] font-bold text-green-700 bg-green-50 border border-green-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                    100% Certified Organic
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    addToCart(CAROUSEL_PRODUCTS[carouselIndex], 1);
+                  }}
+                  className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-xl hover:bg-primary-light transition-all flex items-center justify-center gap-2 shadow-md"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  Add to Cart Basket
+                </button>
+              </div>
+
+              {/* Product In-Depth Info */}
+              <div className="md:col-span-7 space-y-6 text-left">
+                <div>
+                  <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-md uppercase tracking-wider">{CAROUSEL_PRODUCTS[carouselIndex].category}</span>
+                  <h3 className="font-league font-black text-2xl sm:text-3xl text-spruce leading-tight mt-3">{CAROUSEL_PRODUCTS[carouselIndex].name}</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed mt-2 font-inter">{CAROUSEL_PRODUCTS[carouselIndex].desc}</p>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-4 text-xs font-semibold text-gray-600">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Harvest Origin Hub</span>
+                    <p className="text-spruce font-bold mt-0.5">{CAROUSEL_PRODUCTS[carouselIndex].origin}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Pure Medicinal &amp; Health Benefits</span>
+                    <p className="text-spruce font-bold mt-0.5">{CAROUSEL_PRODUCTS[carouselIndex].benefits}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nutritional Profiles</span>
+                    <p className="text-spruce font-bold mt-0.5">{CAROUSEL_PRODUCTS[carouselIndex].nutrition}</p>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Slider triggers */}
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-100">
-              <button onClick={handlePrevProduct} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500">
+            <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-100">
+              <button onClick={handlePrevProduct} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <span className="text-xs text-gray-400 font-bold">{carouselIndex + 1} / {CAROUSEL_PRODUCTS.length}</span>
-              <button onClick={handleNextProduct} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500">
+              <span className="text-xs text-gray-400 font-bold tracking-wider">{carouselIndex + 1} of {CAROUSEL_PRODUCTS.length}</span>
+              <button onClick={handleNextProduct} className="p-2 rounded-full hover:bg-gray-100 text-gray-500 transition-colors">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -532,11 +595,11 @@ export default function HomePage() {
 
           <div className="relative border-l border-white/10 ml-4 md:ml-32 space-y-12">
             {[
-              { year: 'Year 1', title: 'Agriverse Launch', desc: 'Initialize Haryana collection clusters, set up cold-chain logistics in Delhi NCR, and activate products catalog.' },
-              { year: 'Year 2', title: 'Rajasthan Expansion', desc: 'Deploy apiary honey collection units and wood-pressed seed crushing plants in Alwar clusters.' },
-              { year: 'Year 3', title: 'North India Coverage', desc: 'Scale cold-chain operations to Punjab and Uttar Pradesh districts, supporting 10,000+ farmers.' },
-              { year: 'Year 5', title: 'Pan-India Operations', desc: 'Clone chilling plant infrastructure across Western and Southern clusters, serving 1,00,000+ families.' },
-              { year: 'Year 10', title: 'Global Organic Exports', desc: 'Establish shipping nodes to distribute wild wildflower honey and wood-pressed oils to Middle East and EU markets.' }
+              { year: 'Year 1', title: 'Primary Processing Launch', desc: 'Launch primary processing hub in Behror, Rajasthan, establishing initial A2 dairy and wood-pressed seed collection networks.' },
+              { year: 'Year 2', title: 'Regional Cluster Growth', desc: 'Expand logistics network to Delhi NCR, Haryana, and Uttar Pradesh, scaling the agritech supply chain.' },
+              { year: 'Year 3', title: 'Pan-India Coverage', desc: 'Execute Pan-India logistics micro-hubs, expanding reach to Mumbai, Bengaluru, Pune, and Chennai.' },
+              { year: 'Year 5', title: 'Ecosystem Consolidation', desc: 'Consolidate Pan-India operations supporting 25,000+ farmers and serving 200,000+ families with direct tracing.' },
+              { year: 'Year 10', title: 'Global Organic Exports', desc: 'Establish shipping nodes to distribute wild wildflower honey and wood-pressed oils to Middle East, US, and EU markets.' }
             ].map((m, idx) => (
               <div key={idx} className="relative pl-8 md:pl-12 group">
                 <div className="absolute left-[-110px] top-1 text-right w-20 hidden md:block">
@@ -706,7 +769,7 @@ export default function HomePage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 99999 99999"
+                    placeholder="+91 96606 86394"
                     value={formState.phone}
                     onChange={(e) => setFormState({...formState, phone: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"

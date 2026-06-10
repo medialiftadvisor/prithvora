@@ -231,7 +231,7 @@ export default function PartnerPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 99999 99999"
+                    placeholder="+91 96606 86394"
                     value={form.phone}
                     onChange={(e) => setForm({...form, phone: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
