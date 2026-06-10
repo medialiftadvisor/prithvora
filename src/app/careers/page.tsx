@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react';
 import { Award, Briefcase, Check, ShieldCheck, ArrowRight, UserPlus, Star } from 'lucide-react';
+import { submitCareersApplication } from '@/app/actions';
 
 export default function CareersPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [candidateCode, setCandidateCode] = useState('');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -14,13 +18,31 @@ export default function CareersPage() {
     coverLetter: ''
   });
 
-  const handleApplySubmit = (e: React.FormEvent) => {
+  const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
+    setIsSubmitting(true);
+    setErrorMsg('');
+
+    const res = await submitCareersApplication({
+      fullName: form.name,
+      email: form.email,
+      phone: form.phone,
+      position: form.position,
+      resumeUrl: form.resume,
+      coverLetter: form.coverLetter
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setCandidateCode(res.applicationId || '');
+      setFormSubmitted(true);
       setForm({ name: '', email: '', phone: '', position: 'Agronomy & Soil Health Advisor', resume: '', coverLetter: '' });
-    }, 5000);
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 10000);
+    } else {
+      setErrorMsg(res.error || 'Failed to submit careers application.');
+    }
   };
 
   const benefits = [
@@ -180,13 +202,25 @@ export default function CareersPage() {
             <p className="text-xs text-gray-400">Submit your details and CV. Our hiring managers will review and respond within 5 working days.</p>
           </div>
 
+          {errorMsg && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+              {errorMsg}
+            </div>
+          )}
+
           {formSubmitted ? (
-            <div className="text-center py-12 space-y-4">
+            <div className="text-center py-12 space-y-4 animate-fade-in">
               <div className="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h4 className="font-league font-bold text-lg text-spruce">Application Submitted Successfully</h4>
-              <p className="text-xs text-gray-500">Your candidate reference code is PRV-HR-{Math.floor(1000 + Math.random() * 9000)}. We look forward to speaking soon.</p>
+              <p className="text-xs text-gray-500">Your candidate reference code is <strong className="text-primary">{candidateCode}</strong>. We look forward to speaking soon.</p>
+              <button 
+                onClick={() => setFormSubmitted(false)}
+                className="text-xs text-primary underline font-bold mt-2"
+              >
+                Submit another application
+              </button>
             </div>
           ) : (
             <form onSubmit={handleApplySubmit} className="space-y-4">
@@ -268,9 +302,10 @@ export default function CareersPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Submit Career Application
+                {isSubmitting ? 'Submitting Application...' : 'Submit Career Application'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

@@ -1,11 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
   ShieldAlert, LayoutDashboard, ShoppingBag, Truck, Users, Handshake, 
   LineChart, Mail, Briefcase, Plus, Check, X, ShieldCheck, Edit, Trash2 
 } from 'lucide-react';
+import { 
+  getProducts, addProduct, deleteProduct, 
+  getOrders, updateOrderStatus, 
+  getFarmers, approveFarmer, 
+  getPartners, approvePartner, 
+  getInvestors, contactInvestor, 
+  getCareersApplications 
+} from '@/app/actions';
+import { OrderStatus } from '@prisma/client';
 
 // Mock DB states for Admin panel interactive management
 const MOCK_PRODUCTS = [
@@ -45,13 +54,14 @@ export default function AdminPanel() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Local state managers for mock actions
-  const [products, setProducts] = useState(MOCK_PRODUCTS);
-  const [orders, setOrders] = useState(MOCK_ORDERS);
-  const [farmers, setFarmers] = useState(MOCK_FARMERS);
-  const [partners, setPartners] = useState(MOCK_PARTNERS);
-  const [investors, setInvestors] = useState(MOCK_INVESTORS);
-  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  // Dynamic state managers connected to Prisma database
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [farmers, setFarmers] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
+  const [investors, setInvestors] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [newProduct, setNewProduct] = useState({ name: '', category: 'Dairy', price: 0, stock: 100 });
 
@@ -59,6 +69,88 @@ export default function AdminPanel() {
   // In our NextAuth setup, users with "admin" in their email are automatically marked as role = ADMIN.
   // We check that role here to secure our backend.
   const isAdmin = session?.user && (session.user as any).role === 'ADMIN';
+
+  const refreshData = async () => {
+    setIsLoading(true);
+    try {
+      const [prods, ords, farms, parts, invs, apps] = await Promise.all([
+        getProducts(),
+        getOrders(),
+        getFarmers(),
+        getPartners(),
+        getInvestors(),
+        getCareersApplications()
+      ]);
+      setProducts(prods);
+      
+      // Map database orders back to the flat format the table expects
+      const mappedOrders = ords.map((o: any) => {
+        // Retrieve customer name from database relation or parse from shipping address
+        const receiverMatch = o.shippingAddress.match(/Receiver:\s*([^,]+)/);
+        const customerName = o.user?.name || (receiverMatch ? receiverMatch[1] : 'Guest Customer');
+        
+        return {
+          id: o.id,
+          customer: customerName,
+          date: new Date(o.createdAt).toISOString().split('T')[0],
+          amount: o.totalAmount,
+          status: o.status
+        };
+      });
+      setOrders(mappedOrders);
+
+      // Map database farmers back to format the table expects
+      const mappedFarmers = farms.map((f: any) => ({
+        id: f.id,
+        name: f.fullName,
+        state: f.state,
+        crops: f.primaryCrops,
+        status: f.status
+      }));
+      setFarmers(mappedFarmers);
+
+      // Map database partners back to format the table expects
+      const mappedPartners = parts.map((p: any) => ({
+        id: p.id,
+        name: p.fullName,
+        company: p.companyName || 'N/A',
+        tier: p.tier,
+        status: p.status
+      }));
+      setPartners(mappedPartners);
+
+      // Map database investors back to format the table expects
+      const mappedInvestors = invs.map((i: any) => ({
+        id: i.id,
+        name: i.fullName,
+        firm: i.email, // using email as firm contact details
+        range: i.investmentRange,
+        status: i.status
+      }));
+      setInvestors(mappedInvestors);
+
+      // Map database applications back to format the table expects
+      const mappedApplications = apps.map((a: any) => ({
+        id: a.id,
+        name: a.fullName,
+        position: a.position,
+        date: new Date(a.createdAt).toISOString().split('T')[0],
+        status: a.status
+      }));
+      setApplications(mappedApplications);
+
+    } catch (err) {
+      console.error('Error refreshing admin dashboard data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      refreshData();
+    }
+  }, [isAdmin]);
 
   if (!isAdmin) {
     return (
@@ -79,35 +171,69 @@ export default function AdminPanel() {
   }
 
   // Action methods
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newProduct.name) {
-      const prod = {
-        id: 'prod_' + Math.floor(100 + Math.random() * 900),
+      const res = await addProduct({
         name: newProduct.name,
         category: newProduct.category,
         price: Number(newProduct.price),
-        stock: Number(newProduct.stock),
-      };
-      setProducts([...products, prod]);
-      setNewProduct({ name: '', category: 'Dairy', price: 0, stock: 100 });
+        stock: Number(newProduct.stock)
+      });
+      if (res.success) {
+        setNewProduct({ name: '', category: 'Dairy', price: 0, stock: 100 });
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to add product');
+      }
     }
   };
 
-  const handleUpdateOrderStatus = (id: string, newStatus: string) => {
-    setOrders(orders.map(o => o.id === id ? { ...o, status: newStatus } : o));
+  const handleDeleteProduct = async (id: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      const res = await deleteProduct(id);
+      if (res.success) {
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to delete product');
+      }
+    }
   };
 
-  const handleApproveFarmer = (id: string) => {
-    setFarmers(farmers.map(f => f.id === id ? { ...f, status: 'APPROVED' } : f));
+  const handleUpdateOrderStatus = async (id: string, newStatus: string) => {
+    const res = await updateOrderStatus(id, newStatus as OrderStatus);
+    if (res.success) {
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to update order status');
+    }
   };
 
-  const handleApprovePartner = (id: string) => {
-    setPartners(partners.map(p => p.id === id ? { ...p, status: 'APPROVED' } : p));
+  const handleApproveFarmer = async (id: string) => {
+    const res = await approveFarmer(id);
+    if (res.success) {
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to approve farmer');
+    }
   };
 
-  const handleContactInvestor = (id: string) => {
-    setInvestors(investors.map(i => i.id === id ? { ...i, status: 'CONTACTED' } : i));
+  const handleApprovePartner = async (id: string) => {
+    const res = await approvePartner(id);
+    if (res.success) {
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to approve partner');
+    }
+  };
+
+  const handleContactInvestor = async (id: string) => {
+    const res = await contactInvestor(id);
+    if (res.success) {
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to mark investor as contacted');
+    }
   };
 
   const sidebarLinks = [
@@ -153,29 +279,34 @@ export default function AdminPanel() {
 
       {/* Main console content */}
       <main className="flex-1 p-6 sm:p-8 space-y-8 overflow-x-hidden">
-        
-        {/* Tab 1: Dashboard / Analytics */}
-        {activeTab === 'dashboard' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-league font-black text-spruce">Dashboard Analytics</h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Today&apos;s Sales Volume</span>
-                <h3 className="text-3xl font-league font-black text-primary">₹1,84,500</h3>
-                <span className="text-xs text-primary-light font-bold">↑ 12.4% vs Yesterday</span>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Active Shipments</span>
-                <h3 className="text-3xl font-league font-black text-spruce">85 Orders</h3>
-                <span className="text-xs text-gray-500 font-medium">12 pending validation</span>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Intake Procurement</span>
-                <h3 className="text-3xl font-league font-black text-accent">98,200 Litres</h3>
-                <span className="text-xs text-primary-light font-bold">5 state collection hubs active</span>
-              </div>
-            </div>
+        {isLoading ? (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {/* Tab 1: Dashboard / Analytics */}
+            {activeTab === 'dashboard' && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-league font-black text-spruce">Dashboard Analytics</h2>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Sales Volume</span>
+                    <h3 className="text-3xl font-league font-black text-primary">₹{orders.reduce((sum, o) => sum + o.amount, 0).toLocaleString('en-IN')}</h3>
+                    <span className="text-xs text-primary-light font-bold">↑ from database logs</span>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Active Shipments</span>
+                    <h3 className="text-3xl font-league font-black text-spruce">{orders.filter(o => o.status === 'PENDING' || o.status === 'PROCESSING').length} Orders</h3>
+                    <span className="text-xs text-gray-500 font-medium">{orders.filter(o => o.status === 'PENDING').length} pending validation</span>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Intake Procurement (Est.)</span>
+                    <h3 className="text-3xl font-league font-black text-accent">{((farmers.filter(f => f.status === 'APPROVED').length || 1) * 12500).toLocaleString('en-IN')} Litres</h3>
+                    <span className="text-xs text-primary-light font-bold">{farmers.filter(f => f.status === 'APPROVED').length || 2} state collection hubs active</span>
+                  </div>
+                </div>
 
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-xs space-y-4">
               <h3 className="text-lg font-league font-bold text-spruce">System Action Queue</h3>
@@ -287,7 +418,7 @@ export default function AdminPanel() {
                       <td className="py-3 px-4">{p.stock} units</td>
                       <td className="py-3 px-4 text-right space-x-2">
                         <button 
-                          onClick={() => setProducts(products.filter(item => item.id !== p.id))}
+                          onClick={() => handleDeleteProduct(p.id)}
                           className="text-gray-400 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -537,6 +668,8 @@ export default function AdminPanel() {
           </div>
         )}
 
+          </>
+        )}
       </main>
 
     </div>

@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Award, Check, ShieldCheck, HelpCircle, ArrowRight, DollarSign } from 'lucide-react';
+import { registerPartner } from '@/app/actions';
+import { PartnerTier } from '@prisma/client';
 
 export default function PartnerPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -16,13 +18,55 @@ export default function PartnerPage() {
     message: ''
   });
 
-  const handlePartnerSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [partnerCode, setPartnerCode] = useState('');
+
+  const handlePartnerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
+    setIsSubmitting(true);
+    setErrorMsg('');
+
+    const tierMap: Record<string, PartnerTier> = {
+      'Silver Partner': 'SILVER',
+      'Gold Partner': 'GOLD',
+      'Platinum Partner': 'PLATINUM',
+      'Diamond Partner': 'DIAMOND'
+    };
+
+    const expMap: Record<string, number> = {
+      '0-2 Years': 1,
+      '3-5 Years': 4,
+      '5+ Years': 7
+    };
+
+    const capMap: Record<string, number> = {
+      '₹5 Lakhs - ₹15 Lakhs': 1000000,
+      '₹15 Lakhs - ₹40 Lakhs': 2500000,
+      '₹40 Lakhs+': 5000000
+    };
+
+    const res = await registerPartner({
+      fullName: form.name,
+      email: form.email,
+      phone: form.phone,
+      companyName: form.company,
+      tier: tierMap[form.tier] || 'SILVER',
+      experienceYears: expMap[form.experience] || 2,
+      investmentBudget: capMap[form.capital] || 1500000
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setPartnerCode(res.partnerId || '');
+      setFormSubmitted(true);
       setForm({ name: '', email: '', phone: '', company: '', tier: 'Gold Partner', experience: '3-5 Years', capital: '₹15 Lakhs - ₹40 Lakhs', message: '' });
-    }, 5000);
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 10000);
+    } else {
+      setErrorMsg(res.error || 'Failed to submit partnership intent.');
+    }
   };
 
   const partnerTiers = [
@@ -190,13 +234,25 @@ export default function PartnerPage() {
             <p className="text-xs text-gray-400">Our regional development managers will coordinate validation checks within 3 business days.</p>
           </div>
 
+          {errorMsg && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+              {errorMsg}
+            </div>
+          )}
+
           {formSubmitted ? (
-            <div className="text-center py-12 space-y-4">
+            <div className="text-center py-12 space-y-4 animate-fade-in">
               <div className="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h4 className="font-league font-bold text-lg text-spruce">Application Submitted</h4>
-              <p className="text-xs text-gray-500">Your tracking number is PRV-PART-{Math.floor(1000 + Math.random() * 9000)}. We will call you shortly.</p>
+              <p className="text-xs text-gray-500">Your tracking number is <strong className="text-primary">{partnerCode}</strong>. We will call you shortly.</p>
+              <button 
+                onClick={() => setFormSubmitted(false)}
+                className="text-xs text-primary underline font-bold mt-2"
+              >
+                Submit another request
+              </button>
             </div>
           ) : (
             <form onSubmit={handlePartnerSubmit} className="space-y-4">
@@ -302,9 +358,10 @@ export default function PartnerPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Submit Partnership Intent
+                {isSubmitting ? 'Submitting Intent...' : 'Submit Partnership Intent'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

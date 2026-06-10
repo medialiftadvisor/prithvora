@@ -1,0 +1,434 @@
+'use server';
+
+import { db } from '@/lib/db';
+import { Role, OrderStatus, PartnerTier } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
+
+// ==========================================
+// 1. PRODUCTS ACTIONS
+// ==========================================
+
+export async function getProducts() {
+  try {
+    return await db.product.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+export async function addProduct(data: {
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  description?: string;
+  benefits?: string;
+  nutrition?: string;
+  image?: string;
+}) {
+  try {
+    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const product = await db.product.create({
+      data: {
+        name: data.name,
+        slug,
+        category: data.category,
+        price: data.price,
+        stock: data.stock,
+        description: data.description || 'Fresh organic product.',
+        benefits: data.benefits || 'High quality organic ingredients.',
+        nutrition: data.nutrition || '100% natural.',
+        image: data.image || '/produce.png',
+        rating: 5.0,
+        isOrganic: true,
+      },
+    });
+    revalidatePath('/products');
+    revalidatePath('/admin');
+    return { success: true, product };
+  } catch (error: any) {
+    console.error('Error adding product:', error);
+    return { success: false, error: error.message || 'Failed to add product.' };
+  }
+}
+
+export async function deleteProduct(id: string) {
+  try {
+    await db.product.delete({
+      where: { id },
+    });
+    revalidatePath('/products');
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting product:', error);
+    return { success: false, error: error.message || 'Failed to delete product.' };
+  }
+}
+
+// ==========================================
+// 2. ORDERS ACTIONS
+// ==========================================
+
+export async function getOrders() {
+  try {
+    return await db.order.findMany({
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return [];
+  }
+}
+
+export async function createOrder(data: {
+  userId?: string;
+  shippingAddress: string;
+  discountApplied?: number;
+  couponCode?: string;
+  paymentMethod: string;
+  items: Array<{ productId: string; quantity: number; price: number }>;
+}) {
+  try {
+    const totalAmount = data.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const order = await db.$transaction(async (tx) => {
+      // 1. Verify stock of each item and create the order
+      for (const item of data.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product) {
+          throw new Error(`Product not found: ${item.productId}`);
+        }
+
+        if (product.stock < item.quantity) {
+          throw new Error(`Insufficient stock for product: ${product.name}`);
+        }
+
+        // Decrement product stock
+        await tx.product.update({
+          where: { id: item.productId },
+          data: {
+            stock: {
+              decrement: item.quantity,
+            },
+          },
+        });
+      }
+
+      // 2. Create the order
+      const newOrder = await tx.order.create({
+        data: {
+          userId: data.userId || null,
+          shippingAddress: data.shippingAddress,
+          totalAmount: totalAmount - (data.discountApplied || 0),
+          discountApplied: data.discountApplied || 0.0,
+          couponCode: data.couponCode || null,
+          paymentMethod: data.paymentMethod,
+          paymentStatus: data.paymentMethod === 'COD' ? 'PENDING' : 'PAID',
+          status: 'PENDING',
+          items: {
+            create: data.items.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
+        },
+      });
+
+      return newOrder;
+    });
+
+    revalidatePath('/admin');
+    revalidatePath('/products');
+    return { success: true, orderId: order.id };
+  } catch (error: any) {
+    console.error('Error creating order:', error);
+    return { success: false, error: error.message || 'Failed to place order.' };
+  }
+}
+
+export async function updateOrderStatus(id: string, status: OrderStatus) {
+  try {
+    const order = await db.order.update({
+      where: { id },
+      data: { status },
+    });
+    revalidatePath('/admin');
+    return { success: true, order };
+  } catch (error: any) {
+    console.error('Error updating order status:', error);
+    return { success: false, error: error.message || 'Failed to update order status.' };
+  }
+}
+
+// ==========================================
+// 3. FARMERS ACTIONS
+// ==========================================
+
+export async function getFarmers() {
+  try {
+    return await db.farmer.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching farmers:', error);
+    return [];
+  }
+}
+
+export async function registerFarmer(data: {
+  fullName: string;
+  phone: string;
+  state: string;
+  district: string;
+  farmSizeAcres: number;
+  primaryCrops: string;
+  procurementModel: string;
+}) {
+  try {
+    const farmer = await db.farmer.create({
+      data: {
+        fullName: data.fullName,
+        phone: data.phone,
+        state: data.state,
+        district: data.district,
+        farmSizeAcres: data.farmSizeAcres,
+        primaryCrops: data.primaryCrops,
+        procurementModel: data.procurementModel,
+        status: 'PENDING',
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, farmerId: farmer.id };
+  } catch (error: any) {
+    console.error('Error registering farmer:', error);
+    return { success: false, error: error.message || 'Failed to submit registration.' };
+  }
+}
+
+export async function approveFarmer(id: string) {
+  try {
+    const farmer = await db.farmer.update({
+      where: { id },
+      data: { status: 'APPROVED' },
+    });
+    revalidatePath('/admin');
+    return { success: true, farmer };
+  } catch (error: any) {
+    console.error('Error approving farmer:', error);
+    return { success: false, error: error.message || 'Failed to approve farmer.' };
+  }
+}
+
+// ==========================================
+// 4. PARTNERS ACTIONS
+// ==========================================
+
+export async function getPartners() {
+  try {
+    return await db.partner.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching partners:', error);
+    return [];
+  }
+}
+
+export async function registerPartner(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  tier: PartnerTier;
+  experienceYears: number;
+  investmentBudget: number;
+}) {
+  try {
+    const partner = await db.partner.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        companyName: data.companyName || null,
+        tier: data.tier,
+        experienceYears: data.experienceYears,
+        investmentBudget: data.investmentBudget,
+        status: 'PENDING',
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, partnerId: partner.id };
+  } catch (error: any) {
+    console.error('Error registering partner:', error);
+    return { success: false, error: error.message || 'Failed to submit partnership intent.' };
+  }
+}
+
+export async function approvePartner(id: string) {
+  try {
+    const partner = await db.partner.update({
+      where: { id },
+      data: { status: 'APPROVED' },
+    });
+    revalidatePath('/admin');
+    return { success: true, partner };
+  } catch (error: any) {
+    console.error('Error approving partner:', error);
+    return { success: false, error: error.message || 'Failed to approve partner.' };
+  }
+}
+
+// ==========================================
+// 5. INVESTORS ACTIONS
+// ==========================================
+
+export async function getInvestors() {
+  try {
+    return await db.investorLead.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching investors:', error);
+    return [];
+  }
+}
+
+export async function submitInvestorLead(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  investmentRange: string;
+  accreditedStatus: boolean;
+  message?: string;
+}) {
+  try {
+    const lead = await db.investorLead.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        investmentRange: data.investmentRange,
+        accreditedStatus: data.accreditedStatus,
+        message: data.message || null,
+        status: 'NEW',
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, leadId: lead.id };
+  } catch (error: any) {
+    console.error('Error submitting investor lead:', error);
+    return { success: false, error: error.message || 'Failed to submit investor request.' };
+  }
+}
+
+export async function contactInvestor(id: string) {
+  try {
+    const lead = await db.investorLead.update({
+      where: { id },
+      data: { status: 'CONTACTED' },
+    });
+    revalidatePath('/admin');
+    return { success: true, lead };
+  } catch (error: any) {
+    console.error('Error contacting investor:', error);
+    return { success: false, error: error.message || 'Failed to mark investor as contacted.' };
+  }
+}
+
+// ==========================================
+// 6. CAREERS ACTIONS
+// ==========================================
+
+export async function getCareersApplications() {
+  try {
+    return await db.employeeApplication.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return [];
+  }
+}
+
+export async function submitCareersApplication(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  position: string;
+  resumeUrl?: string;
+  coverLetter?: string;
+}) {
+  try {
+    const app = await db.employeeApplication.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        position: data.position,
+        resumeUrl: data.resumeUrl || null,
+        coverLetter: data.coverLetter || null,
+        status: 'APPLIED',
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, applicationId: app.id };
+  } catch (error: any) {
+    console.error('Error submitting application:', error);
+    return { success: false, error: error.message || 'Failed to submit career application.' };
+  }
+}
+
+// ==========================================
+// 7. CONTACT MESSAGES ACTIONS
+// ==========================================
+
+export async function getContactMessages() {
+  try {
+    return await db.contactMessage.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching contact messages:', error);
+    return [];
+  }
+}
+
+export async function submitContactMessage(data: {
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+}) {
+  try {
+    const msg = await db.contactMessage.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone || null,
+        subject: data.subject,
+        message: data.message,
+        status: 'UNREAD',
+      },
+    });
+    return { success: true, messageId: msg.id };
+  } catch (error: any) {
+    console.error('Error submitting contact message:', error);
+    return { success: false, error: error.message || 'Failed to submit contact message.' };
+  }
+}

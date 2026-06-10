@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageCircle, ShieldCheck, ArrowRight } from 'lucide-react';
+import { submitContactMessage } from '@/app/actions';
 
 export default function ContactPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [messageCode, setMessageCode] = useState('');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -13,13 +17,30 @@ export default function ContactPage() {
     message: ''
   });
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
+    setIsSubmitting(true);
+    setErrorMsg('');
+
+    const res = await submitContactMessage({
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      subject: form.subject,
+      message: form.message
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setMessageCode(res.messageId || '');
+      setFormSubmitted(true);
       setForm({ name: '', email: '', phone: '', subject: 'General Inquiry', message: '' });
-    }, 5000);
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 10000);
+    } else {
+      setErrorMsg(res.error || 'Failed to send message.');
+    }
   };
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '919660686394';
@@ -113,13 +134,25 @@ export default function ContactPage() {
           <div className="lg:col-span-7 bg-white border border-gray-100 p-8 sm:p-10 rounded-3xl shadow-xs space-y-6">
             <h3 className="text-xl font-league font-bold text-spruce">Send a Secure Message</h3>
             
+            {errorMsg && (
+              <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+                {errorMsg}
+              </div>
+            )}
+
             {formSubmitted ? (
-              <div className="text-center py-12 space-y-4">
+              <div className="text-center py-12 space-y-4 animate-fade-in">
                 <div className="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <h4 className="font-league font-bold text-lg text-spruce">Message Sent Successfully</h4>
-                <p className="text-xs text-gray-500">We have received your request and will follow up at the registered email address.</p>
+                <p className="text-xs text-gray-500">We have received your request (ID: <strong className="text-primary">{messageCode}</strong>) and will follow up at the registered email address.</p>
+                <button 
+                  onClick={() => setFormSubmitted(false)}
+                  className="text-xs text-primary underline font-bold mt-2"
+                >
+                  Send another inquiry
+                </button>
               </div>
             ) : (
               <form onSubmit={handleContactSubmit} className="space-y-4">
@@ -189,9 +222,10 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 shadow-md"
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
                 >
-                  Send Inquiry Message
+                  {isSubmitting ? 'Sending Message...' : 'Send Inquiry Message'}
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </form>

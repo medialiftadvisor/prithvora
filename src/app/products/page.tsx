@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCartStore } from '@/store/useCartStore';
 import { Search, Heart, ShoppingBag, Eye, X, Check, ArrowRight, ShieldCheck, HeartOff } from 'lucide-react';
+import { getProducts, createOrder } from '@/app/actions';
+import { useSession } from 'next-auth/react';
 
 interface ProductData {
   id: string;
@@ -194,9 +196,12 @@ const PRODUCTS: ProductData[] = [
 function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
   
-  const { addToCart, wishlist, toggleWishlist } = useCartStore();
+  const { addToCart, wishlist, toggleWishlist, cart, clearCart } = useCartStore();
 
+  const [products, setProducts] = useState<ProductData[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
@@ -207,6 +212,8 @@ function ProductsContent() {
 
   // Checkout Form states
   const [checkoutStep, setCheckoutStep] = useState(1);
+  const [isCheckoutSubmitting, setIsCheckoutSubmitting] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
   const [shippingInfo, setShippingInfo] = useState({
     name: '',
     phone: '',
@@ -220,8 +227,19 @@ function ProductsContent() {
 
   const categories = ['All', 'Fresh Fruits', 'Fresh Vegetables', 'Dairy', 'Vedic Ghee', 'Honey', 'Organic Juices', 'Cold Pressed Oils', 'Organic Spices', 'Pickles'];
 
+  // Load products from DB
+  useEffect(() => {
+    const load = async () => {
+      setLoadingProducts(true);
+      const data = await getProducts();
+      setProducts(data as any);
+      setLoadingProducts(false);
+    };
+    load();
+  }, []);
+
   // Filter products
-  const filteredProducts = PRODUCTS.filter((p) => {
+  const filteredProducts = products.filter((p) => {
     const matchesCat = activeCategory === 'All' || p.category === activeCategory;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesWishlist = !showWishlistOnly || wishlist.includes(p.id);
@@ -232,12 +250,39 @@ function ProductsContent() {
     setSelectedProduct(product);
   };
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate order placement
-    const code = 'PRV-' + Math.floor(100000 + Math.random() * 900000);
-    setOrderTrackCode(code);
-    setCheckoutStep(3); // success view
+    if (cart.length === 0) {
+      setCheckoutError('Your cart is empty. Please add items to proceed.');
+      return;
+    }
+
+    setIsCheckoutSubmitting(true);
+    setCheckoutError('');
+
+    const fullAddress = `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.state} - ${shippingInfo.zip}. Receiver: ${shippingInfo.name}, Phone: ${shippingInfo.phone}`;
+
+    const res = await createOrder({
+      userId: (session?.user as any)?.id,
+      shippingAddress: fullAddress,
+      discountApplied: 0, // In a future step, can integrate coupon state in store
+      couponCode: undefined,
+      paymentMethod: shippingInfo.payment,
+      items: cart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.price
+      }))
+    });
+
+    setIsCheckoutSubmitting(false);
+    if (res.success) {
+      setOrderTrackCode(res.orderId || '');
+      setCheckoutStep(3); // success view
+      clearCart();
+    } else {
+      setCheckoutError(res.error || 'Failed to place your order.');
+    }
   };
 
   // Reset category on wishlist toggle
@@ -274,6 +319,12 @@ function ProductsContent() {
               <div className="w-12 h-0.5 bg-gray-200"></div>
               <span className={checkoutStep === 3 ? 'text-primary' : ''}>3. TRACKING</span>
             </div>
+
+            {checkoutError && (
+              <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+                {checkoutError}
+              </div>
+            )}
 
             {checkoutStep === 1 && (
               <form onSubmit={() => setCheckoutStep(2)} className="space-y-4 pt-4">
@@ -403,9 +454,10 @@ function ProductsContent() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-accent text-spruce font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-accent-light transition-all shadow-md"
+                    disabled={isCheckoutSubmitting}
+                    className="flex-1 py-3 bg-accent text-spruce font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-accent-light transition-all shadow-md disabled:opacity-50"
                   >
-                    Place Secure Order
+                    {isCheckoutSubmitting ? 'Placing Order...' : 'Place Secure Order'}
                   </button>
                 </div>
               </form>
@@ -504,7 +556,11 @@ function ProductsContent() {
             </div>
 
             {/* Grid display */}
-            {filteredProducts.length === 0 ? (
+            {loadingProducts ? (
+              <div className="min-h-[300px] flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 space-y-4">
                 <div className="w-12 h-12 bg-offwhite rounded-full flex justify-center items-center text-primary mx-auto">
                   <Eye className="w-6 h-6" />

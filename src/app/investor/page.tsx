@@ -6,6 +6,7 @@ import {
   BarChart, Bar, Cell, PieChart, Pie, Legend, LineChart, Line
 } from 'recharts';
 import { DollarSign, Percent, TrendingUp, ShieldCheck, Mail, Phone, User, Award, Check } from 'lucide-react';
+import { submitInvestorLead } from '@/app/actions';
 
 const REVENUE_DATA = [
   { year: 'Year 1', revenue: 120, cost: 95 },
@@ -33,6 +34,9 @@ const BREAKEVEN_DATA = [
 export default function InvestorPage() {
   const [mounted, setMounted] = useState(false);
   const [leadSubmitted, setLeadSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [leadCode, setLeadCode] = useState('');
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -46,13 +50,31 @@ export default function InvestorPage() {
     setMounted(true);
   }, []);
 
-  const handleSubmitLead = (e: React.FormEvent) => {
+  const handleSubmitLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLeadSubmitted(true);
-    setTimeout(() => {
-      setLeadSubmitted(false);
+    setIsSubmitting(true);
+    setErrorMsg('');
+
+    const res = await submitInvestorLead({
+      fullName: form.name,
+      email: form.email,
+      phone: form.phone,
+      investmentRange: form.amount,
+      accreditedStatus: form.accredited,
+      message: form.message
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setLeadCode(res.leadId || '');
+      setLeadSubmitted(true);
       setForm({ name: '', email: '', phone: '', amount: '$50,000 - $250,000', accredited: true, message: '' });
-    }, 5000);
+      setTimeout(() => {
+        setLeadSubmitted(false);
+      }, 10000);
+    } else {
+      setErrorMsg(res.error || 'Failed to submit investor lead request.');
+    }
   };
 
   const kpis = [
@@ -247,13 +269,25 @@ export default function InvestorPage() {
             <div className="bg-white text-spruce p-6 sm:p-8 rounded-2xl border border-gray-100 shadow-xl space-y-4">
               <h3 className="text-lg font-league font-bold text-spruce">Request Investor Deck</h3>
               
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+                  {errorMsg}
+                </div>
+              )}
+
               {leadSubmitted ? (
-                <div className="text-center py-8 space-y-4">
+                <div className="text-center py-8 space-y-4 animate-fade-in">
                   <div className="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
                     <ShieldCheck className="w-6 h-6" />
                   </div>
                   <h4 className="font-league font-bold text-lg text-spruce">Inquiry Received</h4>
-                  <p className="text-xs text-gray-500">Our Founder &amp; CEO Mahesh Rao will reach out directly to your registered email.</p>
+                  <p className="text-xs text-gray-500">Your inquiry reference is <strong className="text-primary">{leadCode}</strong>. Our Founder &amp; CEO Mahesh Rao will reach out directly to your registered email.</p>
+                  <button 
+                    onClick={() => setLeadSubmitted(false)}
+                    className="text-xs text-primary underline font-bold mt-2"
+                  >
+                    Submit another request
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmitLead} className="space-y-3">
@@ -308,9 +342,10 @@ export default function InvestorPage() {
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all"
+                    disabled={isSubmitting}
+                    className="w-full py-2.5 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all disabled:opacity-50"
                   >
-                    Submit Investor Request
+                    {isSubmitting ? 'Submitting Request...' : 'Submit Investor Request'}
                   </button>
                 </form>
               )}

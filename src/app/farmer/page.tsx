@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Sprout, ShieldCheck, DollarSign, Award, Users, Check, MapPin, ArrowRight } from 'lucide-react';
+import { registerFarmer } from '@/app/actions';
 
 interface CenterData {
   id: string;
@@ -58,6 +59,9 @@ const CENTER_DETAILS: Record<string, CenterData> = {
 export default function FarmerPage() {
   const [selectedState, setSelectedState] = useState<string>('rajasthan');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [farmerCode, setFarmerCode] = useState('');
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -68,13 +72,32 @@ export default function FarmerPage() {
     model: 'Contract Farming'
   });
 
-  const handleFarmerSubmit = (e: React.FormEvent) => {
+  const handleFarmerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormSubmitted(true);
-    setTimeout(() => {
-      setFormSubmitted(false);
-      setForm({ name: '', phone: '', state: 'Rajasthan', district: '', farmSize: '', crop: 'A2 Milk', model: 'Contract Farming' });
-    }, 5000);
+    setIsSubmitting(true);
+    setErrorMsg('');
+    
+    const res = await registerFarmer({
+      fullName: form.name,
+      phone: form.phone,
+      state: form.state,
+      district: form.district,
+      farmSizeAcres: Number(form.farmSize) || 0,
+      primaryCrops: form.crop,
+      procurementModel: form.model
+    });
+
+    setIsSubmitting(false);
+    if (res.success) {
+      setFarmerCode(res.farmerId || '');
+      setFormSubmitted(true);
+      // Automatically dismiss success message after 10s
+      setTimeout(() => {
+        setFormSubmitted(false);
+      }, 10000);
+    } else {
+      setErrorMsg(res.error || 'Failed to submit registration.');
+    }
   };
 
   const activeCenter = CENTER_DETAILS[selectedState];
@@ -253,13 +276,25 @@ export default function FarmerPage() {
             <p className="text-xs text-gray-400">Join our network. Our regional field assistants will visit your farm to verify within 48 hours.</p>
           </div>
 
+          {errorMsg && (
+            <div className="p-4 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl text-center font-semibold">
+              {errorMsg}
+            </div>
+          )}
+
           {formSubmitted ? (
-            <div className="text-center py-12 space-y-4">
+            <div className="text-center py-12 space-y-4 animate-fade-in">
               <div className="w-12 h-12 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <h4 className="font-league font-bold text-lg text-spruce">Registration Request Received</h4>
-              <p className="text-xs text-gray-500">Your registration code is PRV-FARM-{Math.floor(1000 + Math.random() * 9000)}. We will contact you shortly.</p>
+              <p className="text-xs text-gray-500">Your registration ID is <strong className="text-primary">{farmerCode}</strong>. Our field assistant will contact you shortly.</p>
+              <button 
+                onClick={() => setFormSubmitted(false)}
+                className="text-xs text-primary underline font-bold mt-2"
+              >
+                Submit another application
+              </button>
             </div>
           ) : (
             <form onSubmit={handleFarmerSubmit} className="space-y-4">
@@ -358,9 +393,10 @@ export default function FarmerPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Submit Farmer Application
+                {isSubmitting ? 'Submitting Application...' : 'Submit Farmer Application'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
