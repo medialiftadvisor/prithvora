@@ -341,7 +341,34 @@ function ProductsContent() {
         
         {/* VIEW 1: CHECKOUT SCREEN */}
         {showCheckout ? (
-          <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
+          !session ? (
+            <div className="max-w-md mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-xl text-center space-y-6 my-12 animate-zoom-in">
+              <div className="w-16 h-16 rounded-full bg-primary/10 text-primary mx-auto flex items-center justify-center border border-primary/20">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-league font-black text-spruce tracking-wide">Login Required</h2>
+                <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                  For security, tracking, and personalized delivery, checkout is restricted to registered customers. Please sign in or create a new account to proceed with your order.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 pt-2">
+                <button
+                  onClick={() => router.push('/login?callbackUrl=/products?checkout=true')}
+                  className="w-full py-3.5 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-xl hover:bg-primary-light transition-all shadow-sm cursor-pointer"
+                >
+                  Sign In / Register
+                </button>
+                <button
+                  onClick={() => router.push('/products')}
+                  className="w-full py-3.5 border border-gray-200 text-spruce font-league font-bold text-sm tracking-widest uppercase rounded-xl hover:bg-gray-50 transition-all cursor-pointer"
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6">
             
             {/* Header */}
             <div className="flex justify-between items-center border-b border-gray-100 pb-4">
@@ -545,6 +572,7 @@ function ProductsContent() {
             )}
 
           </div>
+          )
         ) : (
           
           /* VIEW 2: NORMAL CATALOG SCREEN */

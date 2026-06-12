@@ -139,6 +139,10 @@ export async function createOrder(data: {
         }
       }
 
+      if (!finalUserId) {
+        throw new Error("Checkout requires a registered customer account. Please register or sign in.");
+      }
+
       // 3. Create the order
       const newOrder = await tx.order.create({
         data: {
@@ -540,6 +544,101 @@ export async function getOrderById(orderId: string) {
   } catch (error) {
     console.error('Error fetching order by ID:', error);
     return null;
+  }
+}
+
+export async function updateProduct(
+  id: string,
+  data: {
+    name: string;
+    category: string;
+    price: number;
+    stock: number;
+    description?: string;
+    benefits?: string;
+    nutrition?: string;
+    image?: string;
+  }
+) {
+  try {
+    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const product = await db.product.update({
+      where: { id },
+      data: {
+        name: data.name,
+        slug,
+        category: data.category,
+        price: data.price,
+        stock: data.stock,
+        description: data.description || 'Fresh organic product.',
+        benefits: data.benefits || 'High quality organic ingredients.',
+        nutrition: data.nutrition || '100% natural.',
+        image: data.image || '/produce.png',
+      },
+    });
+    revalidatePath('/products');
+    revalidatePath(`/products/${slug}`);
+    revalidatePath('/admin');
+    return { success: true, product };
+  } catch (error: any) {
+    console.error('Error updating product:', error);
+    return { success: false, error: error.message || 'Failed to update product.' };
+  }
+}
+
+export async function getCustomers() {
+  try {
+    return await db.user.findMany({
+      where: { role: Role.USER },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    return [];
+  }
+}
+
+export async function updateCustomer(
+  id: string,
+  data: {
+    name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  }
+) {
+  try {
+    const customer = await db.user.update({
+      where: { id },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, customer };
+  } catch (error: any) {
+    console.error('Error updating customer:', error);
+    return { success: false, error: error.message || 'Failed to update customer.' };
+  }
+}
+
+export async function deleteCustomer(id: string) {
+  try {
+    await db.user.delete({
+      where: { id },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting customer:', error);
+    return { success: false, error: error.message || 'Failed to delete customer.' };
   }
 }
 

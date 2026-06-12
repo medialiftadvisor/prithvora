@@ -7,12 +7,13 @@ import {
   LineChart, Mail, Briefcase, Plus, Check, X, ShieldCheck, Edit, Trash2 
 } from 'lucide-react';
 import { 
-  getProducts, addProduct, deleteProduct, 
+  getProducts, addProduct, deleteProduct, updateProduct,
   getOrders, updateOrderStatus, 
   getFarmers, approveFarmer, 
   getPartners, approvePartner, 
   getInvestors, contactInvestor, 
-  getCareersApplications 
+  getCareersApplications,
+  getCustomers, updateCustomer, deleteCustomer
 } from '@/app/actions';
 import { OrderStatus } from '@prisma/client';
 
@@ -58,12 +59,17 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [farmers, setFarmers] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [investors, setInvestors] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [newProduct, setNewProduct] = useState({ name: '', category: 'Dairy', price: 0, stock: 100 });
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [isEditCustomerModalOpen, setIsEditCustomerModalOpen] = useState(false);
 
   // Route protection
   // In our NextAuth setup, users with "admin" in their email are automatically marked as role = ADMIN.
@@ -73,15 +79,17 @@ export default function AdminPanel() {
   const refreshData = async () => {
     setIsLoading(true);
     try {
-      const [prods, ords, farms, parts, invs, apps] = await Promise.all([
+      const [prods, ords, farms, parts, invs, apps, custs] = await Promise.all([
         getProducts(),
         getOrders(),
         getFarmers(),
         getPartners(),
         getInvestors(),
-        getCareersApplications()
+        getCareersApplications(),
+        getCustomers()
       ]);
       setProducts(prods);
+      setCustomers(custs);
       
       // Map database orders back to the flat format the table expects
       const mappedOrders = ords.map((o: any) => {
@@ -241,6 +249,7 @@ export default function AdminPanel() {
     { key: 'products', label: 'Products', icon: ShoppingBag },
     { key: 'orders', label: 'Orders', icon: Truck },
     { key: 'farmers', label: 'Farmers', icon: Users },
+    { key: 'customers', label: 'Customers', icon: Users },
     { key: 'partners', label: 'Partners', icon: Handshake },
     { key: 'investors', label: 'Investors', icon: LineChart },
     { key: 'careers', label: 'Careers', icon: Briefcase },
@@ -418,8 +427,19 @@ export default function AdminPanel() {
                       <td className="py-3 px-4">{p.stock} units</td>
                       <td className="py-3 px-4 text-right space-x-2">
                         <button 
+                          onClick={() => {
+                            setEditingProduct(p);
+                            setIsEditProductModalOpen(true);
+                          }}
+                          className="text-gray-400 hover:text-primary transition-colors mr-2 cursor-pointer inline-flex items-center"
+                          title="Edit Product"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button 
                           onClick={() => handleDeleteProduct(p.id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer inline-flex items-center"
+                          title="Delete Product"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -668,9 +688,306 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {/* Tab 8: Customers */}
+        {activeTab === 'customers' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-league font-black text-spruce">Customer Directory</h2>
+            
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
+                    <th className="py-3 px-4">Name</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Phone</th>
+                    <th className="py-3 px-4">Address</th>
+                    <th className="py-3 px-4">Joined Date</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
+                  {customers.map((c) => (
+                    <tr key={c.id} className="hover:bg-offwhite/50">
+                      <td className="py-3 px-4 font-semibold text-spruce">{c.name || 'N/A'}</td>
+                      <td className="py-3 px-4 font-medium">{c.email}</td>
+                      <td className="py-3 px-4">{c.phone || 'N/A'}</td>
+                      <td className="py-3 px-4 max-w-xs truncate" title={c.address || ''}>
+                        {c.address ? `${c.address}, ${c.city || ''}, ${c.state || ''} - ${c.zip || ''}` : 'No saved address'}
+                      </td>
+                      <td className="py-3 px-4">{new Date(c.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => {
+                            setEditingCustomer(c);
+                            setIsEditCustomerModalOpen(true);
+                          }}
+                          className="text-gray-400 hover:text-primary transition-colors mr-2 cursor-pointer inline-flex items-center"
+                          title="Edit Profile"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Are you sure you want to delete customer ${c.name || c.email}?`)) {
+                              const res = await deleteCustomer(c.id);
+                              if (res.success) {
+                                refreshData();
+                              } else {
+                                alert(res.error || 'Failed to delete customer.');
+                              }
+                            }
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer inline-flex items-center"
+                          title="Delete Customer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
           </>
         )}
       </main>
+
+      {/* Edit Product Modal */}
+      {isEditProductModalOpen && editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditProductModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Product</h3>
+              <button onClick={() => setIsEditProductModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const res = await updateProduct(editingProduct.id, {
+                  name: editingProduct.name,
+                  category: editingProduct.category,
+                  price: Number(editingProduct.price),
+                  stock: Number(editingProduct.stock),
+                  description: editingProduct.description,
+                  benefits: editingProduct.benefits,
+                  nutrition: editingProduct.nutrition,
+                  image: editingProduct.image,
+                });
+                if (res.success) {
+                  setIsEditProductModalOpen(false);
+                  refreshData();
+                } else {
+                  alert(res.error || 'Failed to update product');
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-500"
+            >
+              <div className="space-y-1">
+                <label className="uppercase">Product Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editingProduct.name}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Category</label>
+                  <select
+                    value={editingProduct.category}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option>Dairy</option>
+                    <option>Vedic Ghee</option>
+                    <option>Honey</option>
+                    <option>Cold Pressed Oils</option>
+                    <option>Organic Juices</option>
+                    <option>Fresh Fruits</option>
+                    <option>Fresh Vegetables</option>
+                    <option>Organic Spices</option>
+                    <option>Pickles</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Image Link</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct.image}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Price (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingProduct.price}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Stock (Units)</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingProduct.stock}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Description</label>
+                <textarea
+                  rows={2}
+                  value={editingProduct.description || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Health Benefits (comma separated)</label>
+                <input
+                  type="text"
+                  value={editingProduct.benefits || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, benefits: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Nutrition Facts (comma separated)</label>
+                <input
+                  type="text"
+                  value={editingProduct.nutrition || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, nutrition: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Save Product Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {isEditCustomerModalOpen && editingCustomer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditCustomerModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Customer Profile</h3>
+              <button onClick={() => setIsEditCustomerModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const res = await updateCustomer(editingCustomer.id, {
+                  name: editingCustomer.name,
+                  phone: editingCustomer.phone,
+                  address: editingCustomer.address,
+                  city: editingCustomer.city,
+                  state: editingCustomer.state,
+                  zip: editingCustomer.zip,
+                });
+                if (res.success) {
+                  setIsEditCustomerModalOpen(false);
+                  refreshData();
+                } else {
+                  alert(res.error || 'Failed to update customer');
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-500"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingCustomer.name || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.phone || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Street Address</label>
+                <textarea
+                  rows={2}
+                  value={editingCustomer.address || ''}
+                  onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <label className="uppercase">City</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.city || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">State</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.state || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, state: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Zip Code</label>
+                  <input
+                    type="text"
+                    value={editingCustomer.zip || ''}
+                    onChange={(e) => setEditingCustomer({ ...editingCustomer, zip: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Save Customer Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

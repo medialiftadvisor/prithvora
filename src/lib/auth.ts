@@ -18,21 +18,16 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Try to find the user
-          let user = await db.user.findUnique({
+          const user = await db.user.findUnique({
             where: { email: credentials.email },
           });
 
-          // For a seamless customer experience, auto-create a standard user if they do not exist
           if (!user) {
-            user = await db.user.create({
-              data: {
-                email: credentials.email,
-                name: defaultName,
-                password: credentials.password, // In a real production setup, hash this password
-                role: isEmailAdmin ? 'ADMIN' : 'USER',
-              },
-            });
-          } else if (user.password !== credentials.password) {
+            // No auto-creation! Users must register before logging in.
+            return null;
+          }
+
+          if (user.password !== credentials.password) {
             // Check password match
             return null;
           }
