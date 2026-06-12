@@ -68,7 +68,7 @@ export async function addProduct(data: {
     });
     revalidatePath('/products');
     revalidatePath('/admin');
-    return { success: true, product };
+    return { success: true, product: JSON.parse(JSON.stringify(product)) };
   } catch (error: any) {
     console.error('Error adding product:', error);
     return { success: false, error: error.message || 'Failed to add product.' };
@@ -205,7 +205,7 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
       data: { status },
     });
     revalidatePath('/admin');
-    return { success: true, order };
+    return { success: true, order: JSON.parse(JSON.stringify(order)) };
   } catch (error: any) {
     console.error('Error updating order status:', error);
     return { success: false, error: error.message || 'Failed to update order status.' };
@@ -265,7 +265,7 @@ export async function approveFarmer(id: string) {
       data: { status: 'APPROVED' },
     });
     revalidatePath('/admin');
-    return { success: true, farmer };
+    return { success: true, farmer: JSON.parse(JSON.stringify(farmer)) };
   } catch (error: any) {
     console.error('Error approving farmer:', error);
     return { success: false, error: error.message || 'Failed to approve farmer.' };
@@ -325,7 +325,7 @@ export async function approvePartner(id: string) {
       data: { status: 'APPROVED' },
     });
     revalidatePath('/admin');
-    return { success: true, partner };
+    return { success: true, partner: JSON.parse(JSON.stringify(partner)) };
   } catch (error: any) {
     console.error('Error approving partner:', error);
     return { success: false, error: error.message || 'Failed to approve partner.' };
@@ -383,7 +383,7 @@ export async function contactInvestor(id: string) {
       data: { status: 'CONTACTED' },
     });
     revalidatePath('/admin');
-    return { success: true, lead };
+    return { success: true, lead: JSON.parse(JSON.stringify(lead)) };
   } catch (error: any) {
     console.error('Error contacting investor:', error);
     return { success: false, error: error.message || 'Failed to mark investor as contacted.' };
@@ -529,7 +529,7 @@ export async function updateUserProfile(
         zip: data.zip,
       },
     });
-    return { success: true, user };
+    return { success: true, user: JSON.parse(JSON.stringify(user)) };
   } catch (error: any) {
     console.error('Error updating user profile:', error);
     return { success: false, error: error.message || 'Profile update failed.' };
@@ -624,7 +624,7 @@ export async function updateProduct(
     revalidatePath('/products');
     revalidatePath(`/products/${slug}`);
     revalidatePath('/admin');
-    return { success: true, product };
+    return { success: true, product: JSON.parse(JSON.stringify(product)) };
   } catch (error: any) {
     console.error('Error updating product:', error);
     return { success: false, error: error.message || 'Failed to update product.' };
@@ -668,7 +668,7 @@ export async function updateCustomer(
       },
     });
     revalidatePath('/admin');
-    return { success: true, customer };
+    return { success: true, customer: JSON.parse(JSON.stringify(customer)) };
   } catch (error: any) {
     console.error('Error updating customer:', error);
     return { success: false, error: error.message || 'Failed to update customer.' };
@@ -718,7 +718,7 @@ export async function updateFarmer(
       },
     });
     revalidatePath('/admin');
-    return { success: true, farmer };
+    return { success: true, farmer: JSON.parse(JSON.stringify(farmer)) };
   } catch (error: any) {
     console.error('Error updating farmer:', error);
     return { success: false, error: error.message || 'Failed to update farmer.' };
