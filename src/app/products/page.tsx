@@ -14,8 +14,11 @@ interface ProductData {
   slug: string;
   category: string;
   description: string;
-  benefits: string;
-  nutrition: string;
+  shortDescription?: string | null;
+  benefits?: string | null;
+  nutrition?: string | null;
+  keyHighlights?: string | null;
+  keyFeatures?: string | null;
   price: number;
   image: string;
   rating: number;
@@ -284,7 +287,7 @@ function ProductsContent() {
   // Filter products
   const filteredProducts = products.filter((p) => {
     const matchesCat = activeCategory === 'All' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (p.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || (p.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     const matchesWishlist = !showWishlistOnly || wishlist.includes(p.id);
     return matchesCat && matchesSearch && matchesWishlist;
   });

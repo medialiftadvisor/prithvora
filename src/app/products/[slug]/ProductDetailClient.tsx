@@ -27,8 +27,8 @@ interface Product {
   category: string;
   description: string;
   shortDescription?: string | null;
-  benefits: string;
-  nutrition: string;
+  benefits?: string | null;
+  nutrition?: string | null;
   keyHighlights?: string | null;
   keyFeatures?: string | null;
   price: number;
