@@ -64,8 +64,8 @@ model Product {
   isOrganic        Boolean     @default(true)
   farmerId         String?
   farmer           Farmer?     @relation(fields: [farmerId], references: [id], onDelete: SetNull)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime?    @default(now())
+  updatedAt        DateTime?    @updatedAt
   orderItems       OrderItem[]
 }
 
