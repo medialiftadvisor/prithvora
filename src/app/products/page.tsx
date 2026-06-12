@@ -6,6 +6,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { Search, Heart, ShoppingBag, Eye, X, Check, ArrowRight, ShieldCheck, HeartOff } from 'lucide-react';
 import { getProducts, createOrder } from '@/app/actions';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 interface ProductData {
   id: string;
@@ -189,8 +190,20 @@ const PRODUCTS: ProductData[] = [
     nutrition: 'Capsaicin Level: Mild, Vitamin A: 85% DV, Potassium: 340mg (per 100g)',
     rating: 4.8,
     stock: 150,
-    isOrganic: true
   }
+];
+
+const CATEGORY_INFOS = [
+  { name: 'All', title: 'All Products', desc: 'Full Catalog', image: '/produce.png' },
+  { name: 'Dairy', title: 'Farm Dairy', desc: 'Grass-fed Fresh Milk', image: '/dairy.png' },
+  { name: 'Vedic Ghee', title: 'Traditional Vedic Ghee', desc: 'Bilona Churned Ghee', image: '/dairy.png' },
+  { name: 'Honey', title: 'Raw Wild Honey', desc: 'Himachal Hives', image: '/honey.png' },
+  { name: 'Cold Pressed Oils', title: 'Kachi Ghani Oils', desc: 'Wood-pressed seeds', image: '/oils.png' },
+  { name: 'Organic Juices', title: 'Hydraulic Juices', desc: 'Fresh fruits, zero sugar', image: '/juices.png' },
+  { name: 'Fresh Fruits', title: 'Seasonal Fruits', desc: 'Orchard fresh harvest', image: '/produce.png' },
+  { name: 'Fresh Vegetables', title: 'Greenhouse Veggies', desc: 'Greenhouse pesticide-free', image: '/produce.png' },
+  { name: 'Organic Spices', title: 'Stone-Ground Spices', desc: 'Aromatic chakki spices', image: '/produce.png' },
+  { name: 'Pickles', title: 'Handcrafted Pickles', desc: 'Fermented naturally', image: '/produce.png' }
 ];
 
 function ProductsContent() {
@@ -518,41 +531,59 @@ function ProductsContent() {
               </p>
             </section>
 
-            {/* Toolbar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 mb-8 shadow-xs">
-              
-              {/* Categories list */}
-              <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
-                {categories.map((cat) => (
+            {/* Toolbar / Category Grid Banners */}
+            <div className="space-y-6 mb-12">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                {CATEGORY_INFOS.map((c) => (
                   <button
-                    key={cat}
+                    key={c.name}
                     onClick={() => {
-                      setActiveCategory(cat);
+                      setActiveCategory(c.name);
                       router.push('/products');
                     }}
-                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex-shrink-0 ${
-                      activeCategory === cat && !showWishlistOnly
-                        ? 'bg-primary text-white'
-                        : 'bg-offwhite text-spruce hover:bg-gray-200'
+                    className={`p-4 rounded-3xl border transition-all text-left flex flex-col justify-between h-32 relative overflow-hidden group shadow-xs cursor-pointer ${
+                      activeCategory === c.name && !showWishlistOnly
+                        ? 'border-primary bg-primary text-white shadow-md font-bold'
+                        : 'border-gray-100 bg-white hover:border-primary/20 text-spruce'
                     }`}
                   >
-                    {cat}
+                    <div className="z-10">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider block ${
+                        activeCategory === c.name && !showWishlistOnly ? 'text-accent-light' : 'text-primary'
+                      }`}>{c.desc}</span>
+                      <span className="font-league font-black text-base tracking-wide block mt-1 leading-tight">{c.title}</span>
+                    </div>
+                    {/* Background Image floating on the bottom right */}
+                    <img 
+                      src={c.image} 
+                      alt={c.title} 
+                      className={`absolute -bottom-2 -right-2 w-16 h-16 object-contain z-0 transition-all duration-300 group-hover:scale-110 ${
+                        activeCategory === c.name && !showWishlistOnly ? 'opacity-30' : 'opacity-15'
+                      }`} 
+                    />
                   </button>
                 ))}
               </div>
 
-              {/* Search Box */}
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-3 top-2.5 w-4.5 h-4.5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary"
-                />
+              {/* Search Box / Filter Summary */}
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-xs">
+                <div className="text-xs font-bold text-spruce/60 flex items-center gap-1.5">
+                  Showing: <span className="text-primary font-black uppercase tracking-wider">{showWishlistOnly ? 'Wishlist' : activeCategory} Products</span>
+                  <span className="text-gray-300">|</span>
+                  <span>{filteredProducts.length} Items Found</span>
+                </div>
+                
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-2.5 w-4.5 h-4.5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-primary bg-offwhite/50"
+                  />
+                </div>
               </div>
-
             </div>
 
             {/* Grid display */}
@@ -571,70 +602,110 @@ function ProductsContent() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {filteredProducts.map((p) => {
-                  const isWished = wishlist.includes(p.id);
+              <div className="space-y-16">
+                {/* Loop categories to draw sections */}
+                {(showWishlistOnly || activeCategory !== 'All' 
+                  ? [activeCategory === 'All' ? 'All' : activeCategory] 
+                  : categories.filter(c => c !== 'All')
+                ).map((catName) => {
+                  const sectionProducts = showWishlistOnly || activeCategory !== 'All' 
+                    ? filteredProducts 
+                    : filteredProducts.filter(p => p.category === catName);
+
+                  if (sectionProducts.length === 0) return null;
+
+                  const sectionInfo = CATEGORY_INFOS.find(ci => ci.name === catName) || { title: catName, desc: 'Fresh farm products' };
+
                   return (
-                    <div 
-                      key={p.id}
-                      className="bg-white rounded-2xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col group"
-                    >
-                      {/* Image container */}
-                      <div className="relative aspect-square bg-offwhite flex items-center justify-center p-6 border-b border-gray-50">
-                        <img 
-                          src={p.image} 
-                          alt={p.name} 
-                          className="object-contain w-36 h-36 group-hover:scale-105 transition-transform duration-300"
-                        />
-                        
-                        {/* Organic Badge */}
-                        {p.isOrganic && (
-                          <span className="absolute top-4 left-4 bg-primary text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                            Organic
+                    <div key={catName} className="space-y-6">
+                      {/* Section header (only when showing all) */}
+                      {activeCategory === 'All' && !showWishlistOnly && (
+                        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                          <div className="space-y-1">
+                            <h2 className="font-league font-black text-2xl tracking-wide text-spruce uppercase">{sectionInfo.title}</h2>
+                            <p className="text-xs text-gray-400 font-medium">{sectionInfo.desc}</p>
+                          </div>
+                          <span className="text-[10px] font-bold text-primary bg-primary/5 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                            {sectionProducts.length} Items
                           </span>
-                        )}
-
-                        {/* Wishlist action button */}
-                        <button
-                          onClick={() => toggleWishlist(p.id)}
-                          className="absolute top-4 right-4 p-2 bg-white rounded-full border border-gray-100 hover:text-red-500 text-gray-400 shadow-xs hover:shadow-md transition-all"
-                        >
-                          <Heart className={`w-4.5 h-4.5 ${isWished ? 'fill-red-500 text-red-500' : ''}`} />
-                        </button>
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleProductClick(p)}
-                            className="p-3 bg-white text-spruce rounded-full shadow-lg hover:text-primary transition-colors"
-                            title="Quick View"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
                         </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {sectionProducts.map((p) => {
+                          const isWished = wishlist.includes(p.id);
+                          return (
+                            <div 
+                              key={p.id}
+                              className="bg-white rounded-3xl border border-gray-100 hover:border-primary/20 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+                            >
+                              {/* Image container */}
+                              <div className="relative aspect-square bg-offwhite flex items-center justify-center p-6 border-b border-gray-50/50">
+                                <Link href={`/products/${p.slug}`} className="w-full h-full flex items-center justify-center cursor-pointer">
+                                  <img 
+                                    src={p.image} 
+                                    alt={p.name} 
+                                    className="object-contain w-36 h-36 group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                </Link>
+                                
+                                {/* Organic Badge */}
+                                {p.isOrganic && (
+                                  <span className="absolute top-4 left-4 bg-primary text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                    Organic
+                                  </span>
+                                )}
+
+                                {/* Wishlist action button */}
+                                <button
+                                  onClick={() => toggleWishlist(p.id)}
+                                  className="absolute top-4 right-4 p-2 bg-white rounded-full border border-gray-100 hover:text-red-500 text-gray-400 shadow-xs hover:shadow-md transition-all cursor-pointer"
+                                >
+                                  <Heart className={`w-4.5 h-4.5 ${isWished ? 'fill-red-500 text-red-500' : ''}`} />
+                                </button>
+
+                                {/* Hover Overlay */}
+                                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                  <Link 
+                                    href={`/products/${p.slug}`}
+                                    className="p-3 bg-white text-spruce rounded-full shadow-lg hover:text-primary transition-colors cursor-pointer"
+                                    title="View Full Details"
+                                  >
+                                    <Eye className="w-5 h-5" />
+                                  </Link>
+                                </div>
+                              </div>
+
+                              {/* Details */}
+                              <div className="p-5 space-y-4">
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">{p.category}</span>
+                                  <Link href={`/products/${p.slug}`} className="cursor-pointer block">
+                                    <h3 className="font-bold text-spruce leading-snug text-sm tracking-wide group-hover:text-primary transition-colors line-clamp-1">
+                                      {p.name}
+                                    </h3>
+                                  </Link>
+                                  <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed mt-1">
+                                    {p.description}
+                                  </p>
+                                </div>
+
+                                <div className="flex justify-between items-center pt-2">
+                                  <span className="text-lg font-black text-spruce">₹{p.price}</span>
+                                  <button
+                                    onClick={() => addToCart(p, 1)}
+                                    className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                  >
+                                    <ShoppingBag className="w-3.5 h-3.5" />
+                                    Add to Cart
+                                  </button>
+                                </div>
+                              </div>
+
+                            </div>
+                          );
+                        })}
                       </div>
-
-                      {/* Details */}
-                      <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                        <div className="space-y-1">
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-wider">{p.category}</span>
-                          <h3 className="font-bold text-spruce leading-tight text-sm tracking-wide group-hover:text-primary transition-colors">
-                            {p.name}
-                          </h3>
-                        </div>
-
-                        <div className="flex justify-between items-center pt-2">
-                          <span className="text-lg font-black text-spruce">₹{p.price}</span>
-                          <button
-                            onClick={() => addToCart(p, 1)}
-                            className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-light transition-all flex items-center gap-1.5"
-                          >
-                            <ShoppingBag className="w-3.5 h-3.5" />
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-
                     </div>
                   );
                 })}

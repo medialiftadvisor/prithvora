@@ -128,10 +128,21 @@ export async function createOrder(data: {
         });
       }
 
-      // 2. Create the order
+      // 2. Verify if userId exists and is not a mock ID to prevent foreign key constraint failures
+      let finalUserId: string | null = null;
+      if (data.userId && !data.userId.startsWith('mock-')) {
+        const user = await tx.user.findUnique({
+          where: { id: data.userId },
+        });
+        if (user) {
+          finalUserId = user.id;
+        }
+      }
+
+      // 3. Create the order
       const newOrder = await tx.order.create({
         data: {
-          userId: data.userId || null,
+          userId: finalUserId,
           shippingAddress: data.shippingAddress,
           totalAmount: totalAmount - (data.discountApplied || 0),
           discountApplied: data.discountApplied || 0.0,
