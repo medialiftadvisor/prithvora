@@ -69,8 +69,8 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
   const nutritionItems = product.nutrition
     ? product.nutrition.split(',').map((item) => {
         const parts = item.split(':');
-        const label = parts[0]?.trim();
-        const value = parts[1]?.trim();
+        const label = parts[0]?.trim() || '';
+        const value = parts[1]?.trim() || '';
         
         // Dynamic estimation of Daily Value % for the visual progress bars
         let pct = 45;
@@ -82,11 +82,12 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
             const numMatch = value.match(/(\d+(?:\.\d+)?)/);
             if (numMatch) {
               const num = parseFloat(numMatch[1]);
-              if (label.toLowerCase().includes('energy') || label.toLowerCase().includes('calories')) {
+              const labelLower = label.toLowerCase();
+              if (labelLower.includes('energy') || labelLower.includes('calories')) {
                 pct = Math.min(Math.max((num / 2000) * 100, 10), 100);
-              } else if (label.toLowerCase().includes('protein') || label.toLowerCase().includes('fats') || label.toLowerCase().includes('carbohydrates')) {
+              } else if (labelLower.includes('protein') || labelLower.includes('fats') || labelLower.includes('carbohydrates')) {
                 pct = Math.min(Math.max((num / 70) * 100, 10), 100);
-              } else if (label.toLowerCase().includes('calcium') || label.toLowerCase().includes('potassium')) {
+              } else if (labelLower.includes('calcium') || labelLower.includes('potassium')) {
                 pct = Math.min(Math.max((num / 1000) * 100, 10), 100);
               } else {
                 pct = Math.min(Math.max(num, 15), 95);
@@ -141,7 +142,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
   // Sourcing Hub storytelling text base
   const getSourcingDetails = (category: string) => {
-    switch (category.toLowerCase()) {
+    switch ((category || '').toLowerCase()) {
       case 'dairy':
       case 'vedic ghee':
         return 'Crafted at our dedicated Behror Sourcing Hub in Alwar, Rajasthan. Our A2 products come exclusively from grass-fed indigenous Gir cows, milked by hand in accordance with traditional Vedic principles. The ghee is slow-churned using the Bilona method in earthen pots to retain essential butyric acid and premium fats.';
@@ -259,7 +260,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                     <Star key={i} className="w-4 h-4 fill-accent text-accent" />
                   ))}
                 </div>
-                <span className="text-xs font-bold text-spruce">{product.rating.toFixed(1)} Rating</span>
+                <span className="text-xs font-bold text-spruce">{(product.rating ?? 5.0).toFixed(1)} Rating</span>
                 <span className="text-gray-300">|</span>
                 <span className="text-xs text-primary font-bold">100% Pure Guarantee</span>
               </div>
@@ -267,7 +268,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               {product.farmer && (
                 <div className="flex items-center gap-2 text-xs font-bold text-gray-500 bg-offwhite/50 p-2.5 rounded-xl border border-gray-100/50 w-fit">
                   <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-[9px] uppercase tracking-wider">Grower</span>
-                  <span>Sourced directly from <span className="text-primary font-black">{product.farmer.fullName}</span> ({product.farmer.rating.toFixed(1)}★ Rating)</span>
+                  <span>Sourced directly from <span className="text-primary font-black">{product.farmer.fullName}</span> ({(product.farmer.rating ?? 5.0).toFixed(1)}★ Rating)</span>
                 </div>
               )}
             </div>
@@ -487,7 +488,7 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                                 <Star key={i} className="w-3.5 h-3.5 fill-accent text-accent" />
                               ))}
                             </div>
-                            <span className="text-xs font-bold text-spruce">{product.farmer.rating.toFixed(1)}★</span>
+                            <span className="text-xs font-bold text-spruce">{(product.farmer.rating ?? 5.0).toFixed(1)}★</span>
                           </div>
                         </div>
                       </div>

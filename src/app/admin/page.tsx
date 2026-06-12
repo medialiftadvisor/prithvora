@@ -4,52 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { 
   ShieldAlert, LayoutDashboard, ShoppingBag, Truck, Users, Handshake, 
-  LineChart, Mail, Briefcase, Plus, Check, X, ShieldCheck, Edit, Trash2 
+  LineChart, Mail, Briefcase, Plus, Check, X, ShieldCheck, Edit, Trash2, Eye 
 } from 'lucide-react';
 import { 
   getProducts, addProduct, deleteProduct, updateProduct,
   getOrders, updateOrderStatus, 
-  getFarmers, approveFarmer, 
-  getPartners, approvePartner, 
-  getInvestors, contactInvestor, 
+  getFarmers, approveFarmer, updateFarmer, deleteFarmer,
+  getPartners, approvePartner, deletePartner,
+  getInvestors, contactInvestor, deleteInvestor,
   getCareersApplications,
   getCustomers, updateCustomer, deleteCustomer
 } from '@/app/actions';
 import { OrderStatus } from '@prisma/client';
-
-// Mock DB states for Admin panel interactive management
-const MOCK_PRODUCTS = [
-  { id: 'prod_honey_01', name: 'Raw Wildflower Honey', category: 'Honey', price: 450, stock: 120 },
-  { id: 'prod_dairy_01', name: 'A2 Gir Cow Milk', category: 'Dairy', price: 95, stock: 200 },
-  { id: 'prod_oil_01', name: 'Cold Pressed Yellow Mustard Oil', category: 'Cold Pressed Oils', price: 260, stock: 90 },
-  { id: 'prod_juice_01', name: 'Cold-Pressed Pomegranate Juice', category: 'Organic Juices', price: 180, stock: 75 },
-];
-
-const MOCK_ORDERS = [
-  { id: 'ORD-827192', customer: 'Anil Kumar', date: '2026-06-09', amount: 890, status: 'DELIVERED' },
-  { id: 'ORD-917263', customer: 'Sita Sharma', date: '2026-06-10', amount: 375, status: 'PROCESSING' },
-  { id: 'ORD-127382', customer: 'Kabir Dev', date: '2026-06-10', amount: 1250, status: 'PENDING' },
-];
-
-const MOCK_FARMERS = [
-  { id: 'FARM-827', name: 'Ramesh Kumar', state: 'Haryana', crops: 'A2 Milk, Vegetables', status: 'APPROVED' },
-  { id: 'FARM-912', name: 'Harpreet Singh', state: 'Punjab', crops: 'Basmati Rice', status: 'PENDING' },
-];
-
-const MOCK_PARTNERS = [
-  { id: 'PART-02', name: 'Sunil Gupta', company: 'Gupta Cold Logistics', tier: 'Gold Partner', status: 'APPROVED' },
-  { id: 'PART-03', name: 'Aman Deep', company: 'Deep Organic Clusters', tier: 'Platinum Partner', status: 'PENDING' },
-];
-
-const MOCK_INVESTORS = [
-  { id: 'INV-401', name: 'Rajiv Malhotra', firm: 'Malhotra Capital', range: '$250k - $1M', status: 'NEW' },
-  { id: 'INV-402', name: 'Sanjay Shah', firm: 'Individual Angel', range: '$50k - $250k', status: 'CONTACTED' },
-];
-
-const MOCK_APPLICATIONS = [
-  { id: 'APP-92', name: 'Rahul Sharma', position: 'Lead E-Commerce Developer', date: '2026-06-08', status: 'REVIEWING' },
-  { id: 'APP-93', name: 'Priya Verma', position: 'Agronomy Cluster Specialist', date: '2026-06-09', status: 'APPLIED' },
-];
 
 export default function AdminPanel() {
   const { data: session } = useSession();
@@ -65,11 +31,16 @@ export default function AdminPanel() {
   const [applications, setApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [newProduct, setNewProduct] = useState({ name: '', category: 'Dairy', price: 0, stock: 100 });
+  const [newProduct, setNewProduct] = useState({ name: '', category: 'Dairy', price: 0, stock: 100, farmerId: '' });
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
+  const [editingFarmer, setEditingFarmer] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
   const [isEditCustomerModalOpen, setIsEditCustomerModalOpen] = useState(false);
+  const [isEditFarmerModalOpen, setIsEditFarmerModalOpen] = useState(false);
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
 
   // Route protection
   // In our NextAuth setup, users with "admin" in their email are automatically marked as role = ADMIN.
@@ -100,9 +71,15 @@ export default function AdminPanel() {
         return {
           id: o.id,
           customer: customerName,
+          email: o.user?.email || 'N/A',
+          phone: o.user?.phone || 'N/A',
           date: new Date(o.createdAt).toISOString().split('T')[0],
           amount: o.totalAmount,
-          status: o.status
+          status: o.status,
+          shippingAddress: o.shippingAddress,
+          paymentMethod: o.paymentMethod,
+          paymentStatus: o.paymentStatus,
+          items: o.items || []
         };
       });
       setOrders(mappedOrders);
@@ -111,8 +88,13 @@ export default function AdminPanel() {
       const mappedFarmers = farms.map((f: any) => ({
         id: f.id,
         name: f.fullName,
+        phone: f.phone,
         state: f.state,
+        district: f.district,
+        farmSize: f.farmSizeAcres,
         crops: f.primaryCrops,
+        procurement: f.procurementModel,
+        rating: f.rating,
         status: f.status
       }));
       setFarmers(mappedFarmers);
@@ -121,9 +103,14 @@ export default function AdminPanel() {
       const mappedPartners = parts.map((p: any) => ({
         id: p.id,
         name: p.fullName,
+        email: p.email,
+        phone: p.phone,
         company: p.companyName || 'N/A',
         tier: p.tier,
-        status: p.status
+        experience: p.experienceYears,
+        budget: p.investmentBudget,
+        status: p.status,
+        date: new Date(p.createdAt).toLocaleDateString()
       }));
       setPartners(mappedPartners);
 
@@ -131,9 +118,13 @@ export default function AdminPanel() {
       const mappedInvestors = invs.map((i: any) => ({
         id: i.id,
         name: i.fullName,
-        firm: i.email, // using email as firm contact details
+        email: i.email,
+        phone: i.phone,
         range: i.investmentRange,
-        status: i.status
+        accredited: i.accreditedStatus,
+        message: i.message || 'N/A',
+        status: i.status,
+        date: new Date(i.createdAt).toLocaleDateString()
       }));
       setInvestors(mappedInvestors);
 
@@ -186,10 +177,11 @@ export default function AdminPanel() {
         name: newProduct.name,
         category: newProduct.category,
         price: Number(newProduct.price),
-        stock: Number(newProduct.stock)
+        stock: Number(newProduct.stock),
+        farmerId: newProduct.farmerId || undefined
       });
       if (res.success) {
-        setNewProduct({ name: '', category: 'Dairy', price: 0, stock: 100 });
+        setNewProduct({ name: '', category: 'Dairy', price: 0, stock: 100, farmerId: '' });
         refreshData();
       } else {
         alert(res.error || 'Failed to add product');
@@ -226,6 +218,17 @@ export default function AdminPanel() {
     }
   };
 
+  const handleDeleteFarmer = async (id: string) => {
+    if (confirm('Are you sure you want to delete this grower?')) {
+      const res = await deleteFarmer(id);
+      if (res.success) {
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to delete grower');
+      }
+    }
+  };
+
   const handleApprovePartner = async (id: string) => {
     const res = await approvePartner(id);
     if (res.success) {
@@ -235,12 +238,34 @@ export default function AdminPanel() {
     }
   };
 
+  const handleDeletePartner = async (id: string) => {
+    if (confirm('Are you sure you want to delete this partner application?')) {
+      const res = await deletePartner(id);
+      if (res.success) {
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to delete partner');
+      }
+    }
+  };
+
   const handleContactInvestor = async (id: string) => {
     const res = await contactInvestor(id);
     if (res.success) {
       refreshData();
     } else {
       alert(res.error || 'Failed to mark investor as contacted');
+    }
+  };
+
+  const handleDeleteInvestor = async (id: string) => {
+    if (confirm('Are you sure you want to delete this investor lead?')) {
+      const res = await deleteInvestor(id);
+      if (res.success) {
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to delete investor');
+      }
     }
   };
 
@@ -350,7 +375,7 @@ export default function AdminPanel() {
             </div>
 
             {/* Add product form */}
-            <form onSubmit={handleAddProduct} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+            <form onSubmit={handleAddProduct} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
               <div className="space-y-1">
                 <label className="text-[9px] font-bold text-gray-400 uppercase">Product Name</label>
                 <input
@@ -373,6 +398,24 @@ export default function AdminPanel() {
                   <option>Honey</option>
                   <option>Fresh Fruits</option>
                   <option>Fresh Vegetables</option>
+                  <option>Vedic Ghee</option>
+                  <option>Cold Pressed Oils</option>
+                  <option>Organic Juices</option>
+                  <option>Organic Spices</option>
+                  <option>Pickles</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-gray-400 uppercase">Link Grower</label>
+                <select
+                  value={newProduct.farmerId}
+                  onChange={(e) => setNewProduct({ ...newProduct, farmerId: e.target.value })}
+                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-white"
+                >
+                  <option value="">No linked grower</option>
+                  {farmers.filter((f: any) => f.status === 'APPROVED').map((f: any) => (
+                    <option key={f.id} value={f.id}>{f.name} ({f.state})</option>
+                  ))}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -486,6 +529,16 @@ export default function AdminPanel() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(o);
+                            setIsOrderModalOpen(true);
+                          }}
+                          className="text-gray-400 hover:text-primary transition-colors mr-2 cursor-pointer inline-flex items-center"
+                          title="View Order Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
                         {o.status === 'PENDING' && (
                           <button
                             onClick={() => handleUpdateOrderStatus(o.id, 'PROCESSING')}
@@ -521,8 +574,11 @@ export default function AdminPanel() {
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
                     <th className="py-3 px-4">Grower Name</th>
-                    <th className="py-3 px-4">State Location</th>
-                    <th className="py-3 px-4">Crops</th>
+                    <th className="py-3 px-4">Phone</th>
+                    <th className="py-3 px-4">Location</th>
+                    <th className="py-3 px-4">Farm Size / Crops</th>
+                    <th className="py-3 px-4">Procurement</th>
+                    <th className="py-3 px-4">Rating</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -531,25 +587,54 @@ export default function AdminPanel() {
                   {farmers.map((f) => (
                     <tr key={f.id} className="hover:bg-offwhite/50">
                       <td className="py-3 px-4 font-semibold text-spruce">{f.name}</td>
-                      <td className="py-3 px-4">{f.state}</td>
-                      <td className="py-3 px-4">{f.crops}</td>
+                      <td className="py-3 px-4">{f.phone}</td>
+                      <td className="py-3 px-4">{f.district}, {f.state}</td>
+                      <td className="py-3 px-4">
+                        <span className="block font-semibold">{f.farmSize} Acres</span>
+                        <span className="block text-[10px] text-gray-400">{f.crops}</span>
+                      </td>
+                      <td className="py-3 px-4">{f.procurement}</td>
+                      <td className="py-3 px-4">
+                        <span className="bg-accent/20 text-spruce px-2 py-0.5 rounded-md font-bold">
+                          {(f.rating ?? 5.0).toFixed(1)}★
+                        </span>
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          f.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          f.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 
+                          f.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
                         }`}>
                           {f.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-2">
                         {f.status === 'PENDING' && (
                           <button
                             onClick={() => handleApproveFarmer(f.id)}
-                            className="p-1 text-primary hover:text-primary-light"
+                            className="p-1 text-primary hover:text-primary-light inline-flex items-center cursor-pointer"
                             title="Approve Farmer"
                           >
-                            <Check className="w-4.5 h-4.5" />
+                            <Check className="w-4 h-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() => {
+                            setEditingFarmer(f);
+                            setIsEditFarmerModalOpen(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-primary inline-flex items-center cursor-pointer"
+                          title="Edit Farmer"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFarmer(f.id)}
+                          className="p-1 text-gray-400 hover:text-red-500 inline-flex items-center cursor-pointer"
+                          title="Delete Farmer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -568,8 +653,9 @@ export default function AdminPanel() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
-                    <th className="py-3 px-4">Applicant</th>
+                    <th className="py-3 px-4">Applicant / Contact</th>
                     <th className="py-3 px-4">Company</th>
+                    <th className="py-3 px-4">Experience / Budget</th>
                     <th className="py-3 px-4">Tier</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
@@ -578,9 +664,20 @@ export default function AdminPanel() {
                 <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
                   {partners.map((p) => (
                     <tr key={p.id} className="hover:bg-offwhite/50">
-                      <td className="py-3 px-4 font-semibold text-spruce">{p.name}</td>
-                      <td className="py-3 px-4">{p.company}</td>
-                      <td className="py-3 px-4">{p.tier}</td>
+                      <td className="py-3 px-4">
+                        <span className="block font-semibold text-spruce">{p.name}</span>
+                        <span className="block text-[10px] text-gray-400">{p.email} | {p.phone}</span>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-spruce">{p.company}</td>
+                      <td className="py-3 px-4">
+                        <span className="block font-semibold">{p.experience} Years</span>
+                        <span className="block text-[10px] text-primary">₹{p.budget?.toLocaleString('en-IN')} Budget</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 bg-spruce/5 border border-spruce/10 rounded-md text-[10px] font-bold text-spruce">
+                          {p.tier}
+                        </span>
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           p.status === 'APPROVED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
@@ -588,16 +685,23 @@ export default function AdminPanel() {
                           {p.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-2">
                         {p.status === 'PENDING' && (
                           <button
                             onClick={() => handleApprovePartner(p.id)}
-                            className="p-1 text-primary hover:text-primary-light"
+                            className="p-1 text-primary hover:text-primary-light inline-flex items-center cursor-pointer"
                             title="Approve Partner"
                           >
-                            <Check className="w-4.5 h-4.5" />
+                            <Check className="w-4 h-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() => handleDeletePartner(p.id)}
+                          className="p-1 text-gray-400 hover:text-red-500 inline-flex items-center cursor-pointer"
+                          title="Delete Partner"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -616,9 +720,10 @@ export default function AdminPanel() {
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
-                    <th className="py-3 px-4">Investor</th>
-                    <th className="py-3 px-4">Firm</th>
-                    <th className="py-3 px-4">Budget Range</th>
+                    <th className="py-3 px-4">Investor / Contact</th>
+                    <th className="py-3 px-4">Accreditation</th>
+                    <th className="py-3 px-4">Investment Range</th>
+                    <th className="py-3 px-4">Inquiry Message</th>
                     <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -626,9 +731,21 @@ export default function AdminPanel() {
                 <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
                   {investors.map((i) => (
                     <tr key={i.id} className="hover:bg-offwhite/50">
-                      <td className="py-3 px-4 font-semibold text-spruce">{i.name}</td>
-                      <td className="py-3 px-4">{i.firm}</td>
-                      <td className="py-3 px-4">{i.range}</td>
+                      <td className="py-3 px-4">
+                        <span className="block font-semibold text-spruce">{i.name}</span>
+                        <span className="block text-[10px] text-gray-400">{i.email} | {i.phone}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                          i.accredited ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {i.accredited ? 'Accredited' : 'Not Accredited'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-primary">{i.range}</td>
+                      <td className="py-3 px-4 max-w-xs truncate" title={i.message}>
+                        {i.message}
+                      </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                           i.status === 'CONTACTED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
@@ -636,15 +753,22 @@ export default function AdminPanel() {
                           {i.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-2">
                         {i.status === 'NEW' && (
                           <button
                             onClick={() => handleContactInvestor(i.id)}
-                            className="px-2.5 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary-light"
+                            className="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded-lg hover:bg-primary-light"
                           >
-                            Mark Contacted
+                            Contact
                           </button>
                         )}
+                        <button
+                          onClick={() => handleDeleteInvestor(i.id)}
+                          className="p-1 text-gray-400 hover:text-red-500 inline-flex items-center cursor-pointer"
+                          title="Delete Investor"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -778,6 +902,7 @@ export default function AdminPanel() {
                   benefits: editingProduct.benefits,
                   nutrition: editingProduct.nutrition,
                   image: editingProduct.image,
+                  farmerId: editingProduct.farmerId || undefined
                 });
                 if (res.success) {
                   setIsEditProductModalOpen(false);
@@ -818,15 +943,28 @@ export default function AdminPanel() {
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="uppercase">Image Link</label>
-                  <input
-                    type="text"
-                    required
-                    value={editingProduct.image}
-                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
-                  />
+                  <label className="uppercase">Link Grower</label>
+                  <select
+                    value={editingProduct.farmerId || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, farmerId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="">No linked grower</option>
+                    {farmers.filter((f: any) => f.status === 'APPROVED').map((f: any) => (
+                      <option key={f.id} value={f.id}>{f.name} ({f.state})</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Image Link</label>
+                <input
+                  type="text"
+                  required
+                  value={editingProduct.image}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -985,6 +1123,277 @@ export default function AdminPanel() {
                 Save Customer Changes
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Farmer Modal */}
+      {isEditFarmerModalOpen && editingFarmer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditFarmerModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Grower Profile</h3>
+              <button onClick={() => setIsEditFarmerModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const res = await updateFarmer(editingFarmer.id, {
+                  fullName: editingFarmer.name,
+                  phone: editingFarmer.phone,
+                  state: editingFarmer.state,
+                  district: editingFarmer.district,
+                  farmSizeAcres: Number(editingFarmer.farmSize),
+                  primaryCrops: editingFarmer.crops,
+                  procurementModel: editingFarmer.procurement,
+                  rating: Number(editingFarmer.rating),
+                  status: editingFarmer.status,
+                });
+                if (res.success) {
+                  setIsEditFarmerModalOpen(false);
+                  refreshData();
+                } else {
+                  alert(res.error || 'Failed to update farmer');
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-500"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Grower Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.name || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.phone || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">District</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.district || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, district: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">State</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.state || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, state: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <label className="uppercase">Farm Size (Acres)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    value={editingFarmer.farmSize || 0}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, farmSize: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Rating (0-5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    required
+                    value={editingFarmer.rating || 5.0}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, rating: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={editingFarmer.status || 'PENDING'}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="PENDING">PENDING</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Procurement Model</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.procurement || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, procurement: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Primary Crops</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingFarmer.crops || ''}
+                    onChange={(e) => setEditingFarmer({ ...editingFarmer, crops: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Save Grower Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {isOrderModalOpen && selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsOrderModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-2xl w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-6 animate-zoom-in max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Order Logistics Details</h3>
+                <p className="text-[10px] text-gray-400 mt-0.5">Code: {selectedOrder.id}</p>
+              </div>
+              <button onClick={() => setIsOrderModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-gray-500 font-semibold">
+              <div className="space-y-3 p-4 bg-offwhite rounded-2xl border border-gray-100/50">
+                <h4 className="text-spruce font-bold uppercase tracking-wider border-b border-gray-200 pb-1.5">Customer details</h4>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Name</span>
+                  <span className="text-spruce font-bold text-sm">{selectedOrder.customer}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Email</span>
+                  <span className="text-spruce">{selectedOrder.email}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Phone</span>
+                  <span className="text-spruce">{selectedOrder.phone}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 p-4 bg-offwhite rounded-2xl border border-gray-100/50">
+                <h4 className="text-spruce font-bold uppercase tracking-wider border-b border-gray-200 pb-1.5">Shipping & Payment</h4>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Address coordinates</span>
+                  <span className="text-spruce leading-relaxed block whitespace-pre-wrap">{selectedOrder.shippingAddress}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Payment Method</span>
+                    <span className="text-spruce">{selectedOrder.paymentMethod}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Payment Status</span>
+                    <span className={`font-bold ${selectedOrder.paymentStatus === 'PAID' ? 'text-green-600' : 'text-amber-600'}`}>{selectedOrder.paymentStatus}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-spruce font-league font-bold text-base uppercase tracking-wider border-b border-gray-100 pb-2">Purchased Items</h4>
+              <div className="overflow-hidden border border-gray-100 rounded-2xl">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
+                      <th className="py-2.5 px-4">Product</th>
+                      <th className="py-2.5 px-4 text-center">Qty</th>
+                      <th className="py-2.5 px-4 text-right">Price</th>
+                      <th className="py-2.5 px-4 text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
+                    {selectedOrder.items && selectedOrder.items.map((item: any) => (
+                      <tr key={item.id} className="hover:bg-offwhite/50">
+                        <td className="py-2.5 px-4 flex items-center gap-3">
+                          {item.product?.image && (
+                            <img src={item.product.image} alt={item.product.name} className="w-8 h-8 object-contain rounded-md bg-offwhite p-1" />
+                          )}
+                          <span className="font-semibold text-spruce">{item.product?.name || 'Unknown Product'}</span>
+                        </td>
+                        <td className="py-2.5 px-4 text-center font-bold">{item.quantity}</td>
+                        <td className="py-2.5 px-4 text-right">₹{item.price}</td>
+                        <td className="py-2.5 px-4 text-right font-bold text-spruce">₹{item.price * item.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-offwhite/60 p-4 rounded-2xl border border-gray-100/50">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400 font-bold uppercase">Logistics Status</span>
+                <select
+                  value={selectedOrder.status}
+                  onChange={async (e) => {
+                    const nextStatus = e.target.value;
+                    const res = await updateOrderStatus(selectedOrder.id, nextStatus as OrderStatus);
+                    if (res.success) {
+                      setSelectedOrder({ ...selectedOrder, status: nextStatus });
+                      refreshData();
+                    } else {
+                      alert(res.error || 'Failed to update order status');
+                    }
+                  }}
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-spruce bg-white focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="PENDING">PENDING</option>
+                  <option value="PROCESSING">PROCESSING</option>
+                  <option value="SHIPPED">SHIPPED</option>
+                  <option value="DELIVERED">DELIVERED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+              </div>
+              <div className="text-right">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Grand Total Paid</span>
+                <span className="text-2xl font-league font-black text-primary">₹{selectedOrder.amount}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsOrderModalOpen(false)}
+              className="w-full py-3 bg-spruce text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-spruce/90 transition-all cursor-pointer"
+            >
+              Close Details Desk
+            </button>
           </div>
         </div>
       )}

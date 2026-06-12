@@ -10,9 +10,13 @@ import { revalidatePath } from 'next/cache';
 
 export async function getProducts() {
   try {
-    return await db.product.findMany({
+    const products = await db.product.findMany({
+      include: {
+        farmer: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(products));
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
@@ -28,6 +32,7 @@ export async function addProduct(data: {
   benefits?: string;
   nutrition?: string;
   image?: string;
+  farmerId?: string;
 }) {
   try {
     const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -44,6 +49,7 @@ export async function addProduct(data: {
         image: data.image || '/produce.png',
         rating: 5.0,
         isOrganic: true,
+        farmerId: data.farmerId || null,
       },
     });
     revalidatePath('/products');
@@ -75,8 +81,9 @@ export async function deleteProduct(id: string) {
 
 export async function getOrders() {
   try {
-    return await db.order.findMany({
+    const orders = await db.order.findMany({
       include: {
+        user: true,
         items: {
           include: {
             product: true,
@@ -85,6 +92,7 @@ export async function getOrders() {
       },
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(orders));
   } catch (error) {
     console.error('Error fetching orders:', error);
     return [];
@@ -196,9 +204,10 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
 
 export async function getFarmers() {
   try {
-    return await db.farmer.findMany({
+    const farmers = await db.farmer.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(farmers));
   } catch (error) {
     console.error('Error fetching farmers:', error);
     return [];
@@ -255,9 +264,10 @@ export async function approveFarmer(id: string) {
 
 export async function getPartners() {
   try {
-    return await db.partner.findMany({
+    const partners = await db.partner.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(partners));
   } catch (error) {
     console.error('Error fetching partners:', error);
     return [];
@@ -314,9 +324,10 @@ export async function approvePartner(id: string) {
 
 export async function getInvestors() {
   try {
-    return await db.investorLead.findMany({
+    const investors = await db.investorLead.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(investors));
   } catch (error) {
     console.error('Error fetching investors:', error);
     return [];
@@ -371,9 +382,10 @@ export async function contactInvestor(id: string) {
 
 export async function getCareersApplications() {
   try {
-    return await db.employeeApplication.findMany({
+    const apps = await db.employeeApplication.findMany({
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(apps));
   } catch (error) {
     console.error('Error fetching applications:', error);
     return [];
@@ -558,6 +570,7 @@ export async function updateProduct(
     benefits?: string;
     nutrition?: string;
     image?: string;
+    farmerId?: string;
   }
 ) {
   try {
@@ -574,6 +587,7 @@ export async function updateProduct(
         benefits: data.benefits || 'High quality organic ingredients.',
         nutrition: data.nutrition || '100% natural.',
         image: data.image || '/produce.png',
+        farmerId: data.farmerId || null,
       },
     });
     revalidatePath('/products');
@@ -588,10 +602,11 @@ export async function updateProduct(
 
 export async function getCustomers() {
   try {
-    return await db.user.findMany({
+    const customers = await db.user.findMany({
       where: { role: Role.USER },
       orderBy: { createdAt: 'desc' },
     });
+    return JSON.parse(JSON.stringify(customers));
   } catch (error) {
     console.error('Error fetching customers:', error);
     return [];
@@ -639,6 +654,82 @@ export async function deleteCustomer(id: string) {
   } catch (error: any) {
     console.error('Error deleting customer:', error);
     return { success: false, error: error.message || 'Failed to delete customer.' };
+  }
+}
+
+export async function updateFarmer(
+  id: string,
+  data: {
+    fullName?: string;
+    phone?: string;
+    state?: string;
+    district?: string;
+    farmSizeAcres?: number;
+    primaryCrops?: string;
+    procurementModel?: string;
+    rating?: number;
+    status?: string;
+  }
+) {
+  try {
+    const farmer = await db.farmer.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        phone: data.phone,
+        state: data.state,
+        district: data.district,
+        farmSizeAcres: data.farmSizeAcres,
+        primaryCrops: data.primaryCrops,
+        procurementModel: data.procurementModel,
+        rating: data.rating,
+        status: data.status,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, farmer };
+  } catch (error: any) {
+    console.error('Error updating farmer:', error);
+    return { success: false, error: error.message || 'Failed to update farmer.' };
+  }
+}
+
+export async function deleteFarmer(id: string) {
+  try {
+    await db.farmer.delete({
+      where: { id },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting farmer:', error);
+    return { success: false, error: error.message || 'Failed to delete farmer.' };
+  }
+}
+
+export async function deletePartner(id: string) {
+  try {
+    await db.partner.delete({
+      where: { id },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting partner:', error);
+    return { success: false, error: error.message || 'Failed to delete partner.' };
+  }
+}
+
+export async function deleteInvestor(id: string) {
+  try {
+    await db.investorLead.delete({
+      where: { id },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting investor lead:', error);
+    return { success: false, error: error.message || 'Failed to delete investor lead.' };
   }
 }
 
