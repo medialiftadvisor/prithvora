@@ -53,8 +53,8 @@ model Product {
   category         String      // Fresh Fruits, Fresh Vegetables, Dairy, Honey, Organic Juices, Cold Pressed Oils, Pickles
   description      String      @db.Text
   shortDescription String?     @db.Text
-  benefits         String      @db.Text
-  nutrition        String      @db.Text
+  benefits         String?      @db.Text
+  nutrition        String?      @db.Text
   keyHighlights    String?     @db.Text
   keyFeatures      String?     @db.Text
   price            Float
