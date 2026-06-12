@@ -251,6 +251,36 @@ function ProductsContent() {
     load();
   }, []);
 
+  // Pre-populate shipping info from session profile
+  useEffect(() => {
+    if (showCheckout && session?.user) {
+      const fetchProfile = async () => {
+        try {
+          const userId = (session.user as any).id;
+          const res = await fetch(`/api/user?id=${userId}`);
+          if (res.ok) {
+            const dbUser = await res.json();
+            if (dbUser) {
+              setShippingInfo((prev) => ({
+                ...prev,
+                name: dbUser.name || session.user?.name || prev.name,
+                phone: dbUser.phone || prev.phone,
+                address: dbUser.address || prev.address,
+                city: dbUser.city || prev.city,
+                state: dbUser.state || prev.state,
+                zip: dbUser.zip || prev.zip,
+              }));
+            }
+          }
+        } catch (err) {
+          console.error('Failed to pre-populate shipping info:', err);
+        }
+      };
+      fetchProfile();
+    }
+  }, [showCheckout, session]);
+
+
   // Filter products
   const filteredProducts = products.filter((p) => {
     const matchesCat = activeCategory === 'All' || p.category === activeCategory;

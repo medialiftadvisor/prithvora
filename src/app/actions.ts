@@ -443,3 +443,103 @@ export async function submitContactMessage(data: {
     return { success: false, error: error.message || 'Failed to submit contact message.' };
   }
 }
+
+// ==========================================
+// 8. CUSTOMER & ACCOUNT PORTAL ACTIONS
+// ==========================================
+
+export async function registerCustomer(data: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  try {
+    const existingUser = await db.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingUser) {
+      return { success: false, error: 'A user with this email already exists.' };
+    }
+
+    const user = await db.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        role: 'USER',
+      },
+    });
+    return { success: true, userId: user.id };
+  } catch (error: any) {
+    console.error('Error registering customer:', error);
+    return { success: false, error: error.message || 'Registration failed.' };
+  }
+}
+
+export async function updateUserProfile(
+  userId: string,
+  data: {
+    name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  }
+) {
+  try {
+    const user = await db.user.update({
+      where: { id: userId },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+      },
+    });
+    return { success: true, user };
+  } catch (error: any) {
+    console.error('Error updating user profile:', error);
+    return { success: false, error: error.message || 'Profile update failed.' };
+  }
+}
+
+export async function getUserOrders(userId: string) {
+  try {
+    return await db.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    return [];
+  }
+}
+
+export async function getOrderById(orderId: string) {
+  try {
+    return await db.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching order by ID:', error);
+    return null;
+  }
+}
+

@@ -198,35 +198,73 @@ async function main() {
   }
   console.log('Products seeded successfully.');
 
-  // Optionally seed some mock orders, farmer applications, etc., if empty
-  const farmersCount = await prisma.farmer.count();
-  if (farmersCount === 0) {
-    await prisma.farmer.createMany({
-      data: [
-        {
-          fullName: 'Ramesh Kumar',
-          phone: '+91 96606 86394',
-          state: 'Rajasthan',
-          district: 'Alwar',
-          farmSizeAcres: 5.5,
-          primaryCrops: 'Wild Honey, Mustard Seeds',
-          procurementModel: 'Contract Farming',
-          status: 'APPROVED',
-        },
-        {
-          fullName: 'Harpreet Singh',
-          phone: '+91 98765 43210',
-          state: 'Punjab',
-          district: 'Ludhiana',
-          farmSizeAcres: 12.0,
-          primaryCrops: 'A2 Milk, Rice',
-          procurementModel: 'Co-operative Pooling',
-          status: 'PENDING',
-        }
-      ]
-    });
-    console.log('Farmer applications seeded.');
-  }
+  // Create farmers with ratings
+  const farmerRamesh = await prisma.farmer.upsert({
+    where: { id: 'farmer_ramesh' },
+    update: {
+      fullName: 'Ramesh Kumar',
+      phone: '+91 96606 86394',
+      state: 'Rajasthan',
+      district: 'Alwar',
+      farmSizeAcres: 5.5,
+      primaryCrops: 'Wild Honey, Mustard Seeds',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.9,
+    },
+    create: {
+      id: 'farmer_ramesh',
+      fullName: 'Ramesh Kumar',
+      phone: '+91 96606 86394',
+      state: 'Rajasthan',
+      district: 'Alwar',
+      farmSizeAcres: 5.5,
+      primaryCrops: 'Wild Honey, Mustard Seeds',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.9,
+    }
+  });
+
+  const farmerHarpreet = await prisma.farmer.upsert({
+    where: { id: 'farmer_harpreet' },
+    update: {
+      fullName: 'Harpreet Singh',
+      phone: '+91 98765 43210',
+      state: 'Punjab',
+      district: 'Ludhiana',
+      farmSizeAcres: 12.0,
+      primaryCrops: 'A2 Milk, Rice',
+      procurementModel: 'Co-operative Pooling',
+      status: 'APPROVED',
+      rating: 4.8,
+    },
+    create: {
+      id: 'farmer_harpreet',
+      fullName: 'Harpreet Singh',
+      phone: '+91 98765 43210',
+      state: 'Punjab',
+      district: 'Ludhiana',
+      farmSizeAcres: 12.0,
+      primaryCrops: 'A2 Milk, Rice',
+      procurementModel: 'Co-operative Pooling',
+      status: 'APPROVED',
+      rating: 4.8,
+    }
+  });
+  console.log('Farmers upserted with ratings successfully.');
+
+  // Link products to farmers
+  await prisma.product.updateMany({
+    where: { slug: { in: ['raw-wildflower-honey', 'cold-pressed-mustard-oil'] } },
+    data: { farmerId: 'farmer_ramesh' }
+  });
+
+  await prisma.product.updateMany({
+    where: { slug: { in: ['a2-gir-cow-milk', 'bilona-cow-ghee', 'vedic-gir-cow-a2-ghee', 'vedic-cultured-buffalo-ghee'] } },
+    data: { farmerId: 'farmer_harpreet' }
+  });
+  console.log('Products linked to growers successfully.');
 
   const partnersCount = await prisma.partner.count();
   if (partnersCount === 0) {

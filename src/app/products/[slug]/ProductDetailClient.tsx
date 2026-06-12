@@ -33,6 +33,17 @@ interface Product {
   rating: number;
   stock: number;
   isOrganic: boolean;
+  farmer?: {
+    id: string;
+    fullName: string;
+    phone: string;
+    state: string;
+    district: string;
+    farmSizeAcres: number;
+    primaryCrops: string;
+    procurementModel: string;
+    rating: number;
+  } | null;
 }
 
 interface ProductDetailClientProps {
@@ -252,6 +263,13 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                 <span className="text-gray-300">|</span>
                 <span className="text-xs text-primary font-bold">100% Pure Guarantee</span>
               </div>
+
+              {product.farmer && (
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-500 bg-offwhite/50 p-2.5 rounded-xl border border-gray-100/50 w-fit">
+                  <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-md text-[9px] uppercase tracking-wider">Grower</span>
+                  <span>Sourced directly from <span className="text-primary font-black">{product.farmer.fullName}</span> ({product.farmer.rating.toFixed(1)}★ Rating)</span>
+                </div>
+              )}
             </div>
 
             {/* Price Box */}
@@ -452,6 +470,41 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
                   <p className="text-sm text-gray-600 leading-relaxed">
                     {getSourcingDetails(product.category)}
                   </p>
+
+                  {product.farmer && (
+                    <div className="p-5 bg-offwhite border border-gray-200/50 rounded-2xl space-y-3.5 my-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest block">Meet the Grower</span>
+                          <h4 className="font-league font-black text-lg text-spruce">{product.farmer.fullName}</h4>
+                          <span className="text-xs text-gray-400 block">{product.farmer.district}, {product.farmer.state}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Farmer Rating</span>
+                          <div className="flex items-center gap-1.5 pt-0.5 justify-end">
+                            <div className="flex text-accent">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className="w-3.5 h-3.5 fill-accent text-accent" />
+                              ))}
+                            </div>
+                            <span className="text-xs font-bold text-spruce">{product.farmer.rating.toFixed(1)}★</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-xs font-semibold border-t border-gray-200/55 pt-3 text-gray-500">
+                        <div>
+                          <span className="block text-[9px] text-gray-400 uppercase tracking-wider">Farm Size</span>
+                          <span className="text-spruce block mt-0.5">{product.farmer.farmSizeAcres} Acres</span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] text-gray-400 uppercase tracking-wider">Procurement Model</span>
+                          <span className="text-spruce block mt-0.5">{product.farmer.procurementModel}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <p className="text-sm text-gray-600 leading-relaxed">
                     PRITHVORA Agriverse guarantees that every batch has been tested for adulterants, pesticide residues, and preservative agents at local laboratories before shipping. By selecting this product, you directly support small farming families, providing fair wages and sustainable village development.
                   </p>

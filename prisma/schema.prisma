@@ -35,6 +35,11 @@ model User {
   image         String?
   password      String?
   role          Role      @default(USER)
+  phone         String?
+  address       String?   @db.Text
+  city          String?
+  state         String?
+  zip           String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   orders        Order[]
@@ -53,6 +58,8 @@ model Product {
   rating        Float       @default(5.0)
   stock         Int         @default(100)
   isOrganic     Boolean     @default(true)
+  farmerId      String?
+  farmer        Farmer?     @relation(fields: [farmerId], references: [id])
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   orderItems    OrderItem[]
@@ -94,6 +101,8 @@ model Farmer {
   primaryCrops     String
   procurementModel String   // Contract, Market, Co-op
   status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rating           Float    @default(5.0)
+  products         Product[]
   createdAt        DateTime @default(now())
 }
 

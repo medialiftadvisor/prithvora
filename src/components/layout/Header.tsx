@@ -108,14 +108,22 @@ export default function Header() {
                     <Shield className="w-5 h-5" />
                   </Link>
                 )}
-                <div className="flex flex-col text-right hidden md:block">
-                  <span className="text-xs font-bold text-spruce/90">
+                {/* Account Dashboard Link */}
+                <Link
+                  href="/account"
+                  className="p-2 text-spruce hover:text-primary rounded-lg hover:bg-primary/5 transition-all"
+                  title="My Account"
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+                <Link href="/account" className="flex flex-col text-right hidden md:block hover:text-primary transition-colors text-left">
+                  <span className="text-xs font-bold text-spruce/90 block leading-tight">
                     {session.user?.name || 'User'}
                   </span>
-                  <span className="text-[9px] font-semibold text-gray-400 capitalize">
+                  <span className="text-[9px] font-semibold text-gray-400 capitalize block mt-0.5 leading-none">
                     {session.user?.role?.toLowerCase() || 'Consumer'}
                   </span>
-                </div>
+                </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="p-2 text-gray-500 hover:text-red-500 rounded-lg hover:bg-red-50 transition-all"
@@ -126,7 +134,7 @@ export default function Header() {
               </div>
             ) : (
               <button
-                onClick={() => signIn(undefined, { callbackUrl: '/' })}
+                onClick={() => signIn(undefined, { callbackUrl: '/account' })}
                 className="px-4 py-2 text-xs font-bold text-primary border border-primary/20 bg-primary/5 rounded-lg hover:bg-primary hover:text-white transition-all duration-300"
               >
                 Sign In
@@ -175,6 +183,14 @@ export default function Header() {
                       <p className="text-xs text-gray-500">{session.user?.email}</p>
                     </div>
                   </div>
+                  <Link
+                    href="/account"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 py-2.5 border border-primary/20 text-primary font-bold rounded-xl text-sm hover:bg-primary/5"
+                  >
+                    <User className="w-4 h-4" />
+                    My Account Dashboard
+                  </Link>
                   {session.user?.role === 'ADMIN' && (
                     <Link
                       href="/admin"

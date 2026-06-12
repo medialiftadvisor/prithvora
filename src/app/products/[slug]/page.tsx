@@ -38,7 +38,11 @@ export default async function ProductPage({ params }: PageProps) {
   // Fetch product details
   const product = await db.product.findUnique({
     where: { slug },
+    include: {
+      farmer: true,
+    },
   });
+
 
   if (!product) {
     notFound();
