@@ -31,7 +31,20 @@ export default function AdminPanel() {
   const [applications, setApplications] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [newProduct, setNewProduct] = useState({ name: '', category: 'Dairy', price: 0, stock: 100, farmerId: '' });
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    category: 'Dairy',
+    price: 0,
+    stock: 100,
+    farmerId: '',
+    description: '',
+    shortDescription: '',
+    benefits: '',
+    nutrition: '',
+    keyHighlights: '',
+    keyFeatures: '',
+    image: ''
+  });
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [editingFarmer, setEditingFarmer] = useState<any>(null);
@@ -178,10 +191,30 @@ export default function AdminPanel() {
         category: newProduct.category,
         price: Number(newProduct.price),
         stock: Number(newProduct.stock),
+        description: newProduct.description || undefined,
+        shortDescription: newProduct.shortDescription || undefined,
+        benefits: newProduct.benefits || undefined,
+        nutrition: newProduct.nutrition || undefined,
+        keyHighlights: newProduct.keyHighlights || undefined,
+        keyFeatures: newProduct.keyFeatures || undefined,
+        image: newProduct.image || undefined,
         farmerId: newProduct.farmerId || undefined
       });
       if (res.success) {
-        setNewProduct({ name: '', category: 'Dairy', price: 0, stock: 100, farmerId: '' });
+        setNewProduct({
+          name: '',
+          category: 'Dairy',
+          price: 0,
+          stock: 100,
+          farmerId: '',
+          description: '',
+          shortDescription: '',
+          benefits: '',
+          nutrition: '',
+          keyHighlights: '',
+          keyFeatures: '',
+          image: ''
+        });
         refreshData();
       } else {
         alert(res.error || 'Failed to add product');
@@ -375,78 +408,164 @@ export default function AdminPanel() {
             </div>
 
             {/* Add product form */}
-            <form onSubmit={handleAddProduct} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-400 uppercase">Product Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Organic ghee"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-400 uppercase">Category</label>
-                <select
-                  value={newProduct.category}
-                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-white"
-                >
-                  <option>Dairy</option>
-                  <option>Honey</option>
-                  <option>Fresh Fruits</option>
-                  <option>Fresh Vegetables</option>
-                  <option>Vedic Ghee</option>
-                  <option>Cold Pressed Oils</option>
-                  <option>Organic Juices</option>
-                  <option>Organic Spices</option>
-                  <option>Pickles</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-gray-400 uppercase">Link Grower</label>
-                <select
-                  value={newProduct.farmerId}
-                  onChange={(e) => setNewProduct({ ...newProduct, farmerId: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-white"
-                >
-                  <option value="">No linked grower</option>
-                  {farmers.filter((f: any) => f.status === 'APPROVED').map((f: any) => (
-                    <option key={f.id} value={f.id}>{f.name} ({f.state})</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+            <form onSubmit={handleAddProduct} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xs space-y-4 text-xs font-semibold text-gray-500">
+              <h3 className="font-league font-black text-sm text-spruce uppercase tracking-wider mb-2">Add New Product</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-gray-400 uppercase">Price (₹)</label>
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Product Name</label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    value={newProduct.price}
-                    onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
+                    placeholder="e.g. Organic Wild Honey"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-gray-400 uppercase">Stock (Units)</label>
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Category</label>
+                  <select
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option>Dairy</option>
+                    <option>Vedic Ghee</option>
+                    <option>Honey</option>
+                    <option>Cold Pressed Oils</option>
+                    <option>Organic Juices</option>
+                    <option>Fresh Fruits</option>
+                    <option>Fresh Vegetables</option>
+                    <option>Organic Spices</option>
+                    <option>Pickles</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Link Grower</label>
+                  <select
+                    value={newProduct.farmerId}
+                    onChange={(e) => setNewProduct({ ...newProduct, farmerId: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="">No linked grower</option>
+                    {farmers.filter((f: any) => f.status === 'APPROVED').map((f: any) => (
+                      <option key={f.id} value={f.id}>{f.name} ({f.state})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-400 uppercase">Price (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-400 uppercase">Stock (Units)</label>
+                    <input
+                      type="number"
+                      required
+                      value={newProduct.stock}
+                      onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Image Link</label>
                   <input
-                    type="number"
-                    required
-                    value={newProduct.stock}
-                    onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"
+                    type="text"
+                    placeholder="e.g. /honey.png"
+                    value={newProduct.image}
+                    onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Short Description</label>
+                  <input
+                    type="text"
+                    placeholder="Brief 1-line summary for product card & buybox"
+                    value={newProduct.shortDescription}
+                    onChange={(e) => setNewProduct({ ...newProduct, shortDescription: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
-              <button
-                type="submit"
-                className="py-2.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                Add Product
-              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Full Description</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Detailed description of the product and its origin..."
+                    value={newProduct.description}
+                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Key Features (comma separated)</label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. 100% Pure & Raw, Unfiltered, Lab Tested, Zero Additives"
+                    value={newProduct.keyFeatures}
+                    onChange={(e) => setNewProduct({ ...newProduct, keyFeatures: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Key Highlights (comma separated)</label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. Direct Farmer Sourced, NMR Tested, Sustained Energy Boost"
+                    value={newProduct.keyHighlights}
+                    onChange={(e) => setNewProduct({ ...newProduct, keyHighlights: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Health Benefits (comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Rich in antioxidants, Enhances digestion"
+                    value={newProduct.benefits}
+                    onChange={(e) => setNewProduct({ ...newProduct, benefits: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-gray-400 uppercase">Nutrition Facts (comma separated)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Energy: 304 kcal, Carbs: 82g"
+                    value={newProduct.nutrition}
+                    onChange={(e) => setNewProduct({ ...newProduct, nutrition: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-1.5 cursor-pointer uppercase tracking-wider font-league text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Product to Catalog
+                </button>
+              </div>
             </form>
 
             {/* List */}
@@ -883,7 +1002,7 @@ export default function AdminPanel() {
       {isEditProductModalOpen && editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditProductModalOpen(false)} />
-          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in">
+          <div className="relative bg-white rounded-3xl max-w-2xl w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-gray-100 pb-3">
               <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Product</h3>
               <button onClick={() => setIsEditProductModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
@@ -899,8 +1018,11 @@ export default function AdminPanel() {
                   price: Number(editingProduct.price),
                   stock: Number(editingProduct.stock),
                   description: editingProduct.description,
+                  shortDescription: editingProduct.shortDescription,
                   benefits: editingProduct.benefits,
                   nutrition: editingProduct.nutrition,
+                  keyHighlights: editingProduct.keyHighlights,
+                  keyFeatures: editingProduct.keyFeatures,
                   image: editingProduct.image,
                   farmerId: editingProduct.farmerId || undefined
                 });
@@ -913,19 +1035,19 @@ export default function AdminPanel() {
               }}
               className="space-y-4 text-xs font-semibold text-gray-500"
             >
-              <div className="space-y-1">
-                <label className="uppercase">Product Name</label>
-                <input
-                  type="text"
-                  required
-                  value={editingProduct.name}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="uppercase">Category</label>
+                  <label className="uppercase text-[10px] text-gray-400">Product Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct.name}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Category</label>
                   <select
                     value={editingProduct.category}
                     onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
@@ -942,8 +1064,11 @@ export default function AdminPanel() {
                     <option>Pickles</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="uppercase">Link Grower</label>
+                  <label className="uppercase text-[10px] text-gray-400">Link Grower</label>
                   <select
                     value={editingProduct.farmerId || ''}
                     onChange={(e) => setEditingProduct({ ...editingProduct, farmerId: e.target.value })}
@@ -955,20 +1080,21 @@ export default function AdminPanel() {
                     ))}
                   </select>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <label className="uppercase">Image Link</label>
-                <input
-                  type="text"
-                  required
-                  value={editingProduct.image}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="uppercase">Price (₹)</label>
+                  <label className="uppercase text-[10px] text-gray-400">Image Link</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingProduct.image}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Price (₹)</label>
                   <input
                     type="number"
                     required
@@ -978,7 +1104,7 @@ export default function AdminPanel() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="uppercase">Stock (Units)</label>
+                  <label className="uppercase text-[10px] text-gray-400">Stock (Units)</label>
                   <input
                     type="number"
                     required
@@ -988,8 +1114,19 @@ export default function AdminPanel() {
                   />
                 </div>
               </div>
+
               <div className="space-y-1">
-                <label className="uppercase">Description</label>
+                <label className="uppercase text-[10px] text-gray-400">Short Description</label>
+                <input
+                  type="text"
+                  value={editingProduct.shortDescription || ''}
+                  onChange={(e) => setEditingProduct({ ...editingProduct, shortDescription: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="uppercase text-[10px] text-gray-400">Description</label>
                 <textarea
                   rows={2}
                   value={editingProduct.description || ''}
@@ -997,27 +1134,52 @@ export default function AdminPanel() {
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
                 />
               </div>
-              <div className="space-y-1">
-                <label className="uppercase">Health Benefits (comma separated)</label>
-                <input
-                  type="text"
-                  value={editingProduct.benefits || ''}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, benefits: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Key Features (comma separated)</label>
+                  <textarea
+                    rows={2}
+                    value={editingProduct.keyFeatures || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, keyFeatures: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Key Highlights (comma separated)</label>
+                  <textarea
+                    rows={2}
+                    value={editingProduct.keyHighlights || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, keyHighlights: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="uppercase">Nutrition Facts (comma separated)</label>
-                <input
-                  type="text"
-                  value={editingProduct.nutrition || ''}
-                  onChange={(e) => setEditingProduct({ ...editingProduct, nutrition: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Health Benefits (comma separated)</label>
+                  <input
+                    type="text"
+                    value={editingProduct.benefits || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, benefits: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase text-[10px] text-gray-400">Nutrition Facts (comma separated)</label>
+                  <input
+                    type="text"
+                    value={editingProduct.nutrition || ''}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, nutrition: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
               </div>
+
               <button
                 type="submit"
-                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer font-league text-base"
               >
                 Save Product Changes
               </button>

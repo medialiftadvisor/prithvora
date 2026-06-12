@@ -26,8 +26,11 @@ interface Product {
   slug: string;
   category: string;
   description: string;
+  shortDescription?: string | null;
   benefits: string;
   nutrition: string;
+  keyHighlights?: string | null;
+  keyFeatures?: string | null;
   price: number;
   image: string;
   rating: number;
@@ -55,10 +58,19 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
   const router = useRouter();
   const { addToCart, wishlist, toggleWishlist } = useCartStore();
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState<'benefits' | 'nutrition' | 'origin'>('benefits');
+  const [activeTab, setActiveTab] = useState<'features' | 'benefits' | 'nutrition' | 'origin'>('features');
   const [zoomStyle, setZoomStyle] = useState<React.CSSProperties>({});
 
   const isWished = wishlist.includes(product.id);
+
+  // Parse highlights & features
+  const highlightsList = product.keyHighlights
+    ? product.keyHighlights.split(',').map((h) => h.trim()).filter(Boolean)
+    : [];
+
+  const featuresList = product.keyFeatures
+    ? product.keyFeatures.split(',').map((f) => f.trim()).filter(Boolean)
+    : [];
 
   // Parse benefits
   const benefitsList = product.benefits
@@ -279,10 +291,29 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
               <span className="text-xs text-gray-400 font-bold uppercase tracking-wider">Estimated Market Value</span>
             </div>
 
+            {/* Short Description */}
+            {product.shortDescription && (
+              <p className="text-sm font-semibold text-spruce leading-relaxed">
+                {product.shortDescription}
+              </p>
+            )}
+
             {/* Description */}
             <p className="text-sm text-gray-500 leading-relaxed font-normal">
               {product.description}
             </p>
+
+            {/* Key Highlights Badges */}
+            {highlightsList.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1.5">
+                {highlightsList.map((highlight, idx) => (
+                  <span key={idx} className="bg-primary/5 text-primary border border-primary/15 text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1">
+                    <Check className="w-3 h-3 text-primary" />
+                    {highlight}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Availability */}
             <div className="flex items-center gap-2.5 text-xs font-bold">
@@ -371,7 +402,17 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
         {/* Detailed Tabs/Accordions for Specifications, Nutrition, Origin */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-xs overflow-hidden">
           {/* Tab buttons */}
-          <div className="flex border-b border-gray-100 bg-offwhite/50">
+          <div className="flex border-b border-gray-100 bg-offwhite/50 overflow-x-auto scrollbar-none whitespace-nowrap">
+            <button
+              onClick={() => setActiveTab('features')}
+              className={`flex-1 py-4 px-6 text-xs sm:text-sm font-league font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
+                activeTab === 'features'
+                  ? 'border-primary text-primary bg-white font-black'
+                  : 'border-transparent text-gray-400 hover:text-spruce hover:bg-gray-50'
+              }`}
+            >
+              Key Features & Highlights
+            </button>
             <button
               onClick={() => setActiveTab('benefits')}
               className={`flex-1 py-4 px-6 text-xs sm:text-sm font-league font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer ${
@@ -406,6 +447,57 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
           {/* Tab content panels */}
           <div className="p-6 sm:p-8 min-h-[200px]">
+            {activeTab === 'features' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-league font-black text-spruce uppercase tracking-wider">Product Highlights & Key Features</h3>
+                  <p className="text-xs text-gray-400 mt-1">Authentic farm-processed characteristics and premium quality highlights.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Highlights Card */}
+                  <div className="bg-offwhite/40 border border-gray-100 p-6 rounded-2xl space-y-4">
+                    <h4 className="font-league font-black text-spruce uppercase tracking-wider flex items-center gap-2">
+                      <Sparkles className="w-4.5 h-4.5 text-primary" />
+                      Key Highlights
+                    </h4>
+                    {highlightsList.length > 0 ? (
+                      <ul className="space-y-2.5">
+                        {highlightsList.map((h, i) => (
+                          <li key={i} className="flex items-center gap-2.5 text-xs text-gray-600 font-semibold">
+                            <Check className="w-4 h-4 text-primary shrink-0" />
+                            <span>{h}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">Direct farm sourcing with 100% natural transparent harvesting process.</p>
+                    )}
+                  </div>
+
+                  {/* Features Card */}
+                  <div className="bg-offwhite/40 border border-gray-100 p-6 rounded-2xl space-y-4">
+                    <h4 className="font-league font-black text-spruce uppercase tracking-wider flex items-center gap-2">
+                      <Award className="w-4.5 h-4.5 text-primary" />
+                      Key Features
+                    </h4>
+                    {featuresList.length > 0 ? (
+                      <ul className="space-y-2.5">
+                        {featuresList.map((f, i) => (
+                          <li key={i} className="flex items-center gap-2.5 text-xs text-gray-600 font-semibold">
+                            <Check className="w-4 h-4 text-primary shrink-0" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">Grown sustainably, chemical free, and certified direct-to-consumer.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'benefits' && (
               <div className="space-y-6">
                 <div>

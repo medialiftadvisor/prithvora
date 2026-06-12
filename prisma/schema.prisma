@@ -46,23 +46,26 @@ model User {
 }
 
 model Product {
-  id            String      @id @default(cuid())
-  name          String
-  slug          String      @unique
-  category      String      // Fresh Fruits, Fresh Vegetables, Dairy, Honey, Organic Juices, Cold Pressed Oils, Pickles
-  description   String      @db.Text
-  benefits      String      @db.Text
-  nutrition     String      @db.Text
-  price         Float
-  image         String      // path to public folder e.g., /honey.png
-  rating        Float       @default(5.0)
-  stock         Int         @default(100)
-  isOrganic     Boolean     @default(true)
-  farmerId      String?
-  farmer        Farmer?     @relation(fields: [farmerId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  orderItems    OrderItem[]
+  id               String      @id @default(cuid())
+  name             String
+  slug             String      @unique
+  category         String      // Fresh Fruits, Fresh Vegetables, Dairy, Honey, Organic Juices, Cold Pressed Oils, Pickles
+  description      String      @db.Text
+  shortDescription String?     @db.Text
+  benefits         String      @db.Text
+  nutrition        String      @db.Text
+  keyHighlights    String?     @db.Text
+  keyFeatures      String?     @db.Text
+  price            Float
+  image            String      // path to public folder e.g., /honey.png
+  rating           Float       @default(5.0)
+  stock            Int         @default(100)
+  isOrganic        Boolean     @default(true)
+  farmerId         String?
+  farmer           Farmer?     @relation(fields: [farmerId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  orderItems       OrderItem[]
 }
 
 model Order {

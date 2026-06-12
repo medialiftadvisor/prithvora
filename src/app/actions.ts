@@ -29,13 +29,24 @@ export async function addProduct(data: {
   price: number;
   stock: number;
   description?: string;
+  shortDescription?: string;
   benefits?: string;
   nutrition?: string;
+  keyHighlights?: string;
+  keyFeatures?: string;
   image?: string;
   farmerId?: string;
 }) {
   try {
-    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const existingProduct = await db.product.findUnique({
+      where: { slug },
+    });
+    if (existingProduct) {
+      const suffix = Math.random().toString(36).substring(2, 7);
+      slug = `${slug}-${suffix}`;
+    }
+
     const product = await db.product.create({
       data: {
         name: data.name,
@@ -43,9 +54,12 @@ export async function addProduct(data: {
         category: data.category,
         price: data.price,
         stock: data.stock,
-        description: data.description || 'Fresh organic product.',
+        description: data.description || 'Fresh organic product direct from farmers.',
+        shortDescription: data.shortDescription || null,
         benefits: data.benefits || 'High quality organic ingredients.',
         nutrition: data.nutrition || '100% natural.',
+        keyHighlights: data.keyHighlights || null,
+        keyFeatures: data.keyFeatures || null,
         image: data.image || '/produce.png',
         rating: 5.0,
         isOrganic: true,
@@ -567,14 +581,28 @@ export async function updateProduct(
     price: number;
     stock: number;
     description?: string;
+    shortDescription?: string;
     benefits?: string;
     nutrition?: string;
+    keyHighlights?: string;
+    keyFeatures?: string;
     image?: string;
     farmerId?: string;
   }
 ) {
   try {
-    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    let slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const existingProduct = await db.product.findFirst({
+      where: {
+        slug,
+        id: { not: id },
+      },
+    });
+    if (existingProduct) {
+      const suffix = Math.random().toString(36).substring(2, 7);
+      slug = `${slug}-${suffix}`;
+    }
+
     const product = await db.product.update({
       where: { id },
       data: {
@@ -583,9 +611,12 @@ export async function updateProduct(
         category: data.category,
         price: data.price,
         stock: data.stock,
-        description: data.description || 'Fresh organic product.',
+        description: data.description || 'Fresh organic product direct from farmers.',
+        shortDescription: data.shortDescription || null,
         benefits: data.benefits || 'High quality organic ingredients.',
         nutrition: data.nutrition || '100% natural.',
+        keyHighlights: data.keyHighlights || null,
+        keyFeatures: data.keyFeatures || null,
         image: data.image || '/produce.png',
         farmerId: data.farmerId || null,
       },
