@@ -59,10 +59,14 @@ export default async function ProductPage({ params }: PageProps) {
     take: 4,
   });
 
+  // Safe serialization for Client Component transfer
+  const serializedProduct = JSON.parse(JSON.stringify(product));
+  const serializedRelated = JSON.parse(JSON.stringify(relatedProducts));
+
   return (
     <ProductDetailClient 
-      product={product} 
-      relatedProducts={relatedProducts} 
+      product={serializedProduct} 
+      relatedProducts={serializedRelated} 
     />
   );
 }

@@ -151,11 +151,11 @@ export default function HomePage() {
             <h1 className="text-5xl sm:text-7xl md:text-8xl font-league font-black text-white tracking-wider leading-none">
               PRITHVORA
             </h1>
-            <p className="text-sm sm:text-lg text-secondary-light tracking-wide max-w-2xl mx-auto font-inter">
-              Building India&apos;s most trusted Farm-to-Home and Food Processing Ecosystem.
+            <p className="text-sm sm:text-lg text-secondary-light tracking-wide max-w-2xl mx-auto font-inter leading-relaxed">
+              We are a transparent service provider connecting registered farmers directly with consumers. We record product details, verify grower ratings, conduct rigorous lab testing, and brand &amp; supply direct from our central processing unit.
             </p>
             <p className="text-xs sm:text-sm italic font-light text-gray-400">
-              &quot;From Farmers&apos; Dreams to Every Family&apos;s Table&quot;
+              &quot;Registered Growers • Verified Quality Ratings • Lab Tested Purity&quot;
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
@@ -185,7 +185,7 @@ export default function HomePage() {
             <h2 className="text-xs font-bold text-accent tracking-widest uppercase">Overview</h2>
             <p className="text-3xl sm:text-4xl font-league font-black">Who We Are</p>
             <p className="text-xs text-gray-400 leading-relaxed font-inter">
-              PRITHVORA is building a complete agricultural ecosystem that connects farmers directly with families through technology, processing, transparency and trust.
+              PRITHVORA is a dedicated service provider bridging the gap between local growers and conscious households. We register farmers, record their batch details and quality ratings, process everything transparently at our Behror unit, and sell directly to consumers after strict scientific lab testing and premium branding.
             </p>
           </div>
 
@@ -232,8 +232,8 @@ export default function HomePage() {
                 Farmers work the hardest yet receive the lowest payouts due to complex broker structures. Consumers pay premium prices yet receive chemical-adulterated foods that lose nutritional integrity in standard warehouses.
               </div>
               <div className="p-4 border-l-2 border-primary bg-primary/5 rounded-r-xl">
-                <strong className="text-white block mb-1">Our Agri-Solution</strong>
-                PRITHVORA removes these inefficiencies. We source directly from village chilling units, execute immediate lab tests, and deliver direct payments within 24 hours. Our cold chain brings pesticide-free food straight to your table.
+                <strong className="text-white block mb-1">Our Direct Platform Model</strong>
+                PRITHVORA acts as the trusted service provider. We register farmers, log their individual grower ratings, aggregate the raw harvest at our state-of-the-art Behror processing unit, and direct-sell to consumers only after comprehensive lab testing and premium quality branding.
               </div>
             </div>
           </div>
@@ -267,13 +267,13 @@ export default function HomePage() {
           {/* Flow cards */}
           <div className="grid grid-cols-2 md:grid-cols-7 gap-4 text-center text-xs">
             {[
-              { step: '1', title: 'Farmers', desc: 'Harvest & Log' },
-              { step: '2', title: 'Collection Centers', desc: 'Direct Chilling' },
-              { step: '3', title: 'Quality Testing', desc: 'Purity Check' },
-              { step: '4', title: 'Processing Units', desc: 'Zero Chemicals' },
-              { step: '5', title: 'Packaging', desc: 'Nutrient Seal' },
-              { step: '6', title: 'Distribution', desc: 'Cold Logistics' },
-              { step: '7', title: 'Consumers', desc: 'Home Table' },
+              { step: '1', title: 'Farmer Registration', desc: 'Profiles & Ratings logged' },
+              { step: '2', title: 'Direct Sourcing', desc: 'Product details recorded' },
+              { step: '3', title: 'Central Processing', desc: 'Processed at our unit' },
+              { step: '4', title: 'Lab Testing', desc: 'Tested for purity & safety' },
+              { step: '5', title: 'Premium Branding', desc: 'PRITHVORA quality sealed' },
+              { step: '6', title: 'Direct Supply', desc: 'Cold-chain tracked logistics' },
+              { step: '7', title: 'Direct Sell', desc: 'Sold direct to consumers' },
             ].map((item, idx) => (
               <div key={idx} className="p-4 bg-white/5 border border-white/5 rounded-xl space-y-2 hover:border-primary/30 transition-all duration-300">
                 <span className="w-6 h-6 rounded-full bg-primary text-white font-bold flex items-center justify-center mx-auto text-[10px]">{item.step}</span>

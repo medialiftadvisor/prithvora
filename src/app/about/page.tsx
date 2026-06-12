@@ -7,26 +7,26 @@ import { Award, Compass, Heart, Leaf, Shield, User, Users } from 'lucide-react';
 export default function AboutPage() {
   const coreValues = [
     {
-      title: 'Farmer-First Model',
-      desc: 'Our entire ecosystem is structured to prioritize the financial and operational health of our farming communities.',
+      title: 'Farmer Registration & Ratings',
+      desc: 'We register local growers, record their product batches, and maintain verified ratings directly in our registry.',
       icon: Users,
       color: 'bg-primary/10 text-primary'
     },
     {
-      title: 'Organic Integrity',
-      desc: 'Every drop of milk, spoonful of honey, and bottle of cold-pressed oil passes through strict quality testing.',
+      title: 'Scientific Lab Testing',
+      desc: 'Every batch of ghee, honey, and oil undergoes rigorous chemical and purity lab tests before being premium branded.',
       icon: Leaf,
       color: 'bg-green-100 text-green-700'
     },
     {
-      title: 'Radical Transparency',
-      desc: 'Through our digital tracing model, customers can see precisely when and where their products were harvested.',
+      title: 'Transparent Processing Unit',
+      desc: 'We process all harvests directly at our Behror facility under strict quality control and full chain traceability.',
       icon: Shield,
       color: 'bg-accent/10 text-accent'
     },
     {
-      title: 'Sustainable Innovation',
-      desc: 'We invest in water-saving technologies, crop rotation kits, and solar collection hubs in rural clusters.',
+      title: 'Direct Supply & Sell',
+      desc: 'We act as a direct service provider between farmers and consumers, eliminating middlemen to ensure direct supply.',
       icon: Compass,
       color: 'bg-blue-100 text-blue-700'
     }
@@ -78,11 +78,11 @@ export default function AboutPage() {
             <h2 className="text-3xl font-league font-bold text-spruce">
               Nurturing the Soil that Feeds Us
             </h2>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Prithvora was born from a simple observation: rural farmers work tirelessly yet earn minimal profits, while urban families pay premium prices for foods containing chemical residues. 
+            <p className="text-sm text-gray-600 leading-relaxed font-normal">
+              PRITHVORA is a dedicated service provider connecting registered farmers directly with consumers for transparent direct supply. We record each product detail along with grower ratings to build absolute consumer trust.
             </p>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              By establishing direct collection points in farming hubs and conducting immediate quality inspections, we ensure that farmers receive fair payouts within 24 hours. Our clean processing methods preserve the natural nutrition, delivering real health directly to consumer homes.
+            <p className="text-sm text-gray-600 leading-relaxed font-normal">
+              All harvested organic products are processed transparently at our own central unit. Before shipping, each batch undergoes strict laboratory testing to ensure zero chemical adulteration. Under the PRITHVORA brand, we sell directly to households, ensuring premium quality, fair farm compensation, and absolute consumer health.
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
               <div className="space-y-1">
@@ -106,32 +106,32 @@ export default function AboutPage() {
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">1</div>
                 <div>
-                  <h4 className="font-semibold text-spruce text-sm">Harvest &amp; Log</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Farmers harvest organic crops or milk and log data into the Prithvora Farmer App.</p>
+                  <h4 className="font-semibold text-spruce text-sm">Farmer Registration &amp; Ratings</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">We register local growers, record their product details, and log verified grower ratings in our database.</p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">2</div>
                 <div>
-                  <h4 className="font-semibold text-spruce text-sm">Chilling &amp; Quality Test</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Items are brought to nearby chilling units where physical and biochemical parameters are tested.</p>
+                  <h4 className="font-semibold text-spruce text-sm">Transparent Processing Unit</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">Harvests are brought directly to our Behror processing facility where we process them with complete transparency.</p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">3</div>
                 <div>
-                  <h4 className="font-semibold text-spruce text-sm">Cold Chain Transit</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Insulated trucks transport items directly to our processing hubs under continuous temperature control.</p>
+                  <h4 className="font-semibold text-spruce text-sm">Scientific Lab Testing &amp; Branding</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">Every batch undergoes rigorous quality and adulterant lab tests before being packaged under our premium PRITHVORA brand.</p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs flex-shrink-0">4</div>
                 <div>
-                  <h4 className="font-semibold text-spruce text-sm">Doorstep Delivery</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Goods reach consumer homes in Rajasthan, Delhi NCR, and major cities Pan-India within 24 hours of packaging.</p>
+                  <h4 className="font-semibold text-spruce text-sm">Direct Supply &amp; Sell</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">We sell directly to consumers, managing our cold chain delivery system to transport items straight to your doorstep.</p>
                 </div>
               </div>
             </div>
