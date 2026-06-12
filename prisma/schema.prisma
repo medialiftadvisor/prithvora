@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Added support for Prisma migration pooling safety
 }
 
 generator client {
@@ -62,7 +63,7 @@ model Product {
   stock            Int         @default(100)
   isOrganic        Boolean     @default(true)
   farmerId         String?
-  farmer           Farmer?     @relation(fields: [farmerId], references: [id])
+  farmer           Farmer?     @relation(fields: [farmerId], references: [id], onDelete: SetNull)
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
   orderItems       OrderItem[]
@@ -89,24 +90,24 @@ model OrderItem {
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   quantity  Int
   price     Float
 }
 
 model Farmer {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   fullName         String
   phone            String
   state            String
   district         String
   farmSizeAcres    Float
   primaryCrops     String
-  procurementModel String   // Contract, Market, Co-op
-  status           String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  rating           Float    @default(5.0)
+  procurementModel String    // Contract, Market, Co-op
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rating           Float     @default(5.0)
   products         Product[]
-  createdAt        DateTime @default(now())
+  createdAt        DateTime  @default(now())
 }
 
 model Partner {
@@ -135,15 +136,15 @@ model InvestorLead {
 }
 
 model EmployeeApplication {
-  id         String   @id @default(cuid())
-  fullName   String
-  email      String
-  phone      String
-  position   String   // Job title
-  resumeUrl  String?  // PDF file path or url
-  coverLetter String? @db.Text
-  status     String   @default("APPLIED") // APPLIED, REVIEWING, INTERVIEWING, OFFERED, REJECTED
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  fullName    String
+  email       String
+  phone       String
+  position    String   // Job title
+  resumeUrl   String?  // PDF file path or url
+  coverLetter String?  @db.Text
+  status      String   @default("APPLIED") // APPLIED, REVIEWING, INTERVIEWING, OFFERED, REJECTED
+  createdAt   DateTime @default(now())
 }
 
 model BlogPost {
