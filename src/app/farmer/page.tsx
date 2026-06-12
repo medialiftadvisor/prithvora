@@ -14,50 +14,50 @@ interface CenterData {
 }
 
 const CENTER_DETAILS: Record<string, CenterData> = {
-  haryana: {
-    id: 'cnt_01',
-    state: 'Haryana (Karnal Cluster)',
-    growers: '2,400+ Farmers',
-    capacity: '30,000 Litres/Day',
-    crops: 'Gir A2 Milk, Wheat, Green Vegetables',
-    chillingCapacity: 'Fully Deployed (BMS Monitors)'
-  },
-  punjab: {
-    id: 'cnt_02',
-    state: 'Punjab (Ludhiana Cluster)',
-    growers: '3,100+ Farmers',
-    capacity: '42,000 Litres/Day',
-    crops: 'Raw A2 Milk, Organic Basmati Rice, Vegetables',
-    chillingCapacity: 'Fully Deployed (Solar Chilling)'
-  },
-  rajasthan: {
-    id: 'cnt_03',
-    state: 'Rajasthan (Alwar Cluster)',
+  alwar: {
+    id: 'cnt_raj_01',
+    state: 'Alwar Hub (East Rajasthan)',
     growers: '1,850+ Farmers',
     capacity: '12,000 Litres/Day',
-    crops: 'Wildflower Honey, Mustard Seeds, Sesame Seeds',
+    crops: 'Wildflower Honey, Mustard Seeds, Cold Pressed Oils',
+    chillingCapacity: 'Fully Functional (Solar Cooling)'
+  },
+  jaipur: {
+    id: 'cnt_raj_02',
+    state: 'Jaipur Hub (Central Rajasthan)',
+    growers: '2,100+ Farmers',
+    capacity: '24,000 Litres/Day',
+    crops: 'Vedic Ghee, Fresh A2 Cow Milk, Dairy Products',
+    chillingCapacity: 'Fully Functional (BMS Monitored)'
+  },
+  bikaner: {
+    id: 'cnt_raj_03',
+    state: 'Bikaner Hub (North Rajasthan)',
+    growers: '1,450+ Farmers',
+    capacity: '8,500 Units/Day',
+    crops: 'Organic Spices, Fenugreek, Cumin, Mustard Oils',
     chillingCapacity: 'Procurement Chutes Only'
   },
-  up: {
-    id: 'cnt_04',
-    state: 'Uttar Pradesh (Mathura Cluster)',
-    growers: '4,200+ Farmers',
-    capacity: '55,000 Litres/Day',
-    crops: 'A2 Cow Milk, Mangoes, Sugarcane, Pickles',
-    chillingCapacity: 'Fully Deployed (Dual Generators)'
+  jodhpur: {
+    id: 'cnt_raj_04',
+    state: 'Jodhpur Hub (West Rajasthan)',
+    growers: '1,200+ Farmers',
+    capacity: '10,500 Litres/Day',
+    crops: 'Organic Aloe Juices, Pomegranates, Dates',
+    chillingCapacity: 'Procurement Chutes & Cold Room'
   },
-  gujarat: {
-    id: 'cnt_05',
-    state: 'Gujarat (Anand Cluster)',
-    growers: '3,500+ Farmers',
-    capacity: '48,000 Litres/Day',
-    crops: 'Raw A2 Milk, Organic Cotton, Groundnuts',
-    chillingCapacity: 'Fully Deployed (Industrial Chillers)'
+  udaipur: {
+    id: 'cnt_raj_05',
+    state: 'Udaipur Hub (South Rajasthan)',
+    growers: '1,650+ Farmers',
+    capacity: '15,000 Kg/Day',
+    crops: 'Fresh Organic Fruits, Green Vegetables, Pickles',
+    chillingCapacity: 'Fully Functional (Solar Cooling)'
   }
 };
 
 export default function FarmerPage() {
-  const [selectedState, setSelectedState] = useState<string>('rajasthan');
+  const [selectedState, setSelectedState] = useState<string>('alwar');
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -202,66 +202,66 @@ export default function FarmerPage() {
             </div>
           </div>
 
-          {/* Interactive SVG Representation of India Map / Clusters */}
+          {/* Interactive SVG Representation of Rajasthan Map / Clusters */}
           <div className="lg:col-span-7 flex justify-center items-center bg-offwhite/50 border border-gray-100 rounded-2xl p-6 min-h-[350px]">
             <svg viewBox="0 0 400 450" className="w-full max-w-sm drop-shadow-md">
-              {/* Dummy outlines representing India shape */}
-              <path 
-                d="M190,50 L200,60 L210,50 L220,70 L210,100 L230,120 L280,130 L320,150 L310,180 L290,190 L260,200 L230,220 L240,260 L270,280 L250,320 L220,380 L200,420 L195,430 L190,420 L180,380 L185,340 L170,300 L160,280 L145,260 L120,260 L100,240 L90,200 L60,190 L50,180 L80,165 L100,165 L120,120 L140,110 L160,85 L180,75 Z"
+              {/* Stylized Rajasthan map outline */}
+              <polygon 
+                points="200,40 290,140 330,170 310,240 260,330 220,380 170,350 150,330 130,290 80,240 60,200 70,160 120,90"
                 fill="#f0f5f2" 
                 stroke="#185f39" 
                 strokeWidth="1.5" 
                 strokeDasharray="4 4"
               />
 
-              {/* Haryana Center */}
+              {/* Alwar Hub */}
               <g 
                 className="cursor-pointer group"
-                onClick={() => setSelectedState('haryana')}
+                onClick={() => setSelectedState('alwar')}
               >
-                <circle cx="160" cy="120" r={selectedState === 'haryana' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
-                <circle cx="160" cy="120" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'haryana' ? 'block' : 'none' }} />
-                <text x="160" y="105" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">HARYANA</text>
+                <circle cx="270" cy="160" r={selectedState === 'alwar' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
+                <circle cx="270" cy="160" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'alwar' ? 'block' : 'none' }} />
+                <text x="270" y="145" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">ALWAR</text>
               </g>
 
-              {/* Punjab Center */}
+              {/* Jaipur Hub */}
               <g 
                 className="cursor-pointer group"
-                onClick={() => setSelectedState('punjab')}
+                onClick={() => setSelectedState('jaipur')}
               >
-                <circle cx="145" cy="95" r={selectedState === 'punjab' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
-                <circle cx="145" cy="95" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'punjab' ? 'block' : 'none' }} />
-                <text x="145" y="80" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">PUNJAB</text>
+                <circle cx="210" cy="200" r={selectedState === 'jaipur' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
+                <circle cx="210" cy="200" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'jaipur' ? 'block' : 'none' }} />
+                <text x="210" y="185" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">JAIPUR</text>
               </g>
 
-              {/* Rajasthan Center */}
+              {/* Bikaner Hub */}
               <g 
                 className="cursor-pointer group"
-                onClick={() => setSelectedState('rajasthan')}
+                onClick={() => setSelectedState('bikaner')}
               >
-                <circle cx="125" cy="150" r={selectedState === 'rajasthan' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
-                <circle cx="125" cy="150" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'rajasthan' ? 'block' : 'none' }} />
-                <text x="125" y="135" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">RAJASTHAN</text>
+                <circle cx="140" cy="110" r={selectedState === 'bikaner' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
+                <circle cx="140" cy="110" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'bikaner' ? 'block' : 'none' }} />
+                <text x="140" y="95" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">BIKANER</text>
               </g>
 
-              {/* UP Center */}
+              {/* Jodhpur Hub */}
               <g 
                 className="cursor-pointer group"
-                onClick={() => setSelectedState('up')}
+                onClick={() => setSelectedState('jodhpur')}
               >
-                <circle cx="185" cy="140" r={selectedState === 'up' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
-                <circle cx="185" cy="140" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'up' ? 'block' : 'none' }} />
-                <text x="185" y="125" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">UTTAR PRADESH</text>
+                <circle cx="110" cy="210" r={selectedState === 'jodhpur' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
+                <circle cx="110" cy="210" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'jodhpur' ? 'block' : 'none' }} />
+                <text x="110" y="195" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">JODHPUR</text>
               </g>
 
-              {/* Gujarat Center */}
+              {/* Udaipur Hub */}
               <g 
                 className="cursor-pointer group"
-                onClick={() => setSelectedState('gujarat')}
+                onClick={() => setSelectedState('udaipur')}
               >
-                <circle cx="95" cy="210" r={selectedState === 'gujarat' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
-                <circle cx="95" cy="210" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'gujarat' ? 'block' : 'none' }} />
-                <text x="95" y="195" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">GUJARAT</text>
+                <circle cx="160" cy="310" r={selectedState === 'udaipur' ? 12 : 8} fill="#185f39" className="transition-all fill-primary hover:fill-accent" />
+                <circle cx="160" cy="310" r="20" fill="none" stroke="#185f39" strokeWidth="1" className="animate-ping" style={{ display: selectedState === 'udaipur' ? 'block' : 'none' }} />
+                <text x="160" y="295" textAnchor="middle" className="text-[10px] font-bold fill-spruce font-league tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">UDAIPUR</text>
               </g>
 
             </svg>
@@ -328,14 +328,10 @@ export default function FarmerPage() {
                   <label className="text-[10px] font-bold text-gray-500 uppercase">State (राज्य)</label>
                   <select
                     value={form.state}
-                    onChange={(e) => setForm({...form, state: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-white"
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary bg-gray-100 text-gray-500 cursor-not-allowed"
                   >
-                    <option>Haryana</option>
-                    <option>Punjab</option>
-                    <option>Rajasthan</option>
-                    <option>Uttar Pradesh</option>
-                    <option>Gujarat</option>
+                    <option value="Rajasthan">Rajasthan (केवल राजस्थान)</option>
                   </select>
                 </div>
                 <div className="space-y-1">
@@ -343,7 +339,7 @@ export default function FarmerPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Karnal"
+                    placeholder="e.g. Alwar, Jaipur, Jodhpur"
                     value={form.district}
                     onChange={(e) => setForm({...form, district: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-primary"

@@ -149,7 +149,7 @@ const PRODUCTS = [
   {
     name: 'Stone-Ground Kashmiri Chilli',
     slug: 'stone-ground-kashmiri-chilli',
-    category: 'stone-ground-kashmiri-chilli',
+    category: 'Organic Spices',
     price: 180,
     image: '/produce.png',
     description: 'Premium Kashmiri red chillies stone-ground slowly. Imparts rich deep red color with a mild, smoky heat.',
@@ -157,6 +157,84 @@ const PRODUCTS = [
     nutrition: 'Capsaicin Level: Mild, Vitamin A: 85% DV, Potassium: 340mg (per 100g)',
     rating: 4.8,
     stock: 150,
+    isOrganic: true
+  },
+  {
+    name: 'Stone-Ground Organic Chana Dal',
+    slug: 'stone-ground-chana-dal',
+    category: 'Organic Spices',
+    price: 140,
+    image: '/produce.png',
+    description: 'Sustainably harvested yellow gram, split and slowly stone-dehusked at our Jaipur hub to preserve natural protein structure and fiber.',
+    benefits: 'High protein value, rich in dietary fiber, low glycemic index.',
+    nutrition: 'Protein: 22g, Dietary Fiber: 11g, Carbohydrates: 58g (per 100g)',
+    rating: 4.8,
+    stock: 160,
+    isOrganic: true
+  },
+  {
+    name: 'Cold Pressed Sesame Oil',
+    slug: 'cold-pressed-sesame-oil',
+    category: 'Cold Pressed Oils',
+    price: 290,
+    image: '/oils.png',
+    description: 'Wood-pressed oil extracted at low temperatures from premium black sesame seeds procured from dry land Jodhpur farm clusters.',
+    benefits: 'Rich in calcium and zinc, supports bone density, loaded with sesamol antioxidants.',
+    nutrition: 'Monounsaturated Fats: 40g, Polyunsaturated Fats: 42g, Vitamin E: 15% DV (per 100ml)',
+    rating: 4.9,
+    stock: 85,
+    isOrganic: true
+  },
+  {
+    name: 'Organic Aloe Vera Juice',
+    slug: 'organic-aloe-juice',
+    category: 'Organic Juices',
+    price: 220,
+    image: '/juices.png',
+    description: 'Fresh inner-leaf Aloe Vera pulp harvested from desert family farms in Jodhpur. Cold-processed and stabilized within 4 hours.',
+    benefits: 'Soothes gastrointestinal tract, supports healthy digestion, hydrates skin tissues naturally.',
+    nutrition: 'Aloe Mucilage: 95%, Vitamin C: 20% DV, Calcium: 4% DV (per 100ml)',
+    rating: 4.7,
+    stock: 100,
+    isOrganic: true
+  },
+  {
+    name: 'Organic Garlic Powder',
+    slug: 'organic-garlic-powder',
+    category: 'Organic Spices',
+    price: 110,
+    image: '/produce.png',
+    description: 'Hand-sorted native garlic bulbs from Udaipur clusters, sun-dehydrated and ground slowly without any anti-caking chemical additives.',
+    benefits: 'Natural immunity booster, supports cardiovascular health, antimicrobial benefits.',
+    nutrition: 'Allicin Content: High, Sodium: 0mg, Iron: 8% DV (per 100g)',
+    rating: 4.9,
+    stock: 130,
+    isOrganic: true
+  },
+  {
+    name: 'A2 Vedic Cultured Butter',
+    slug: 'a2-vedic-cultured-butter',
+    category: 'Dairy',
+    price: 380,
+    image: '/dairy.png',
+    description: 'Cultured A2 cow butter churned by hand (using the traditional Bilona method) at our Jaipur collection center. Naturally salted.',
+    benefits: 'Rich in fat-soluble vitamins, highly digestible, contains butyrate for gut barrier health.',
+    nutrition: 'Cultured Milk Fat: 82g, Moisture: 16g, Protein: 0.8g (per 100g)',
+    rating: 5.0,
+    stock: 70,
+    isOrganic: true
+  },
+  {
+    name: 'Sun-Dried Rajasthani Green Chillies',
+    slug: 'sundried-rajasthan-green-chillies',
+    category: 'Pickles',
+    price: 150,
+    image: '/produce.png',
+    description: 'Pungent Rajasthani green chillies split and pickled in wood-pressed yellow mustard oil, ground mustard seeds, and rock salt.',
+    benefits: 'Acts as a digestive stimulant, rich in active capsaicin, zero chemical vinegar added.',
+    nutrition: 'Capsaicin: High, Sodium: 180mg, Vitamin C: 15% DV (per 15g serving)',
+    rating: 4.8,
+    stock: 90,
     isOrganic: true
   }
 ];

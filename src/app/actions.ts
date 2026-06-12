@@ -47,13 +47,20 @@ export async function addProduct(data: {
       slug = `${slug}-${suffix}`;
     }
 
+    const price = Number(data.price);
+    const stock = Math.round(Number(data.stock));
+    if (isNaN(price) || isNaN(stock)) {
+      throw new Error("Price and Stock must be valid numbers.");
+    }
+    const parsedFarmerId = (data.farmerId && data.farmerId.trim() !== '') ? data.farmerId : null;
+
     const product = await db.product.create({
       data: {
         name: data.name,
         slug,
         category: data.category,
-        price: data.price,
-        stock: data.stock,
+        price,
+        stock,
         description: data.description || 'Fresh organic product direct from farmers.',
         shortDescription: data.shortDescription || null,
         benefits: data.benefits || 'High quality organic ingredients.',
@@ -63,7 +70,7 @@ export async function addProduct(data: {
         image: data.image || '/produce.png',
         rating: 5.0,
         isOrganic: true,
-        farmerId: data.farmerId || null,
+        farmerId: parsedFarmerId,
       },
     });
     revalidatePath('/products');
@@ -238,6 +245,9 @@ export async function registerFarmer(data: {
   procurementModel: string;
 }) {
   try {
+    if (data.state !== 'Rajasthan') {
+      throw new Error("Farmer program registration is currently restricted to Rajasthan only.");
+    }
     const farmer = await db.farmer.create({
       data: {
         fullName: data.fullName,
@@ -603,14 +613,21 @@ export async function updateProduct(
       slug = `${slug}-${suffix}`;
     }
 
+    const price = Number(data.price);
+    const stock = Math.round(Number(data.stock));
+    if (isNaN(price) || isNaN(stock)) {
+      throw new Error("Price and Stock must be valid numbers.");
+    }
+    const parsedFarmerId = (data.farmerId && data.farmerId.trim() !== '') ? data.farmerId : null;
+
     const product = await db.product.update({
       where: { id },
       data: {
         name: data.name,
         slug,
         category: data.category,
-        price: data.price,
-        stock: data.stock,
+        price,
+        stock,
         description: data.description || 'Fresh organic product direct from farmers.',
         shortDescription: data.shortDescription || null,
         benefits: data.benefits || 'High quality organic ingredients.',
@@ -618,7 +635,7 @@ export async function updateProduct(
         keyHighlights: data.keyHighlights || null,
         keyFeatures: data.keyFeatures || null,
         image: data.image || '/produce.png',
-        farmerId: data.farmerId || null,
+        farmerId: parsedFarmerId,
       },
     });
     revalidatePath('/products');
