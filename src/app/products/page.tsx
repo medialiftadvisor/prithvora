@@ -218,6 +218,7 @@ function ProductsContent() {
 
   const [products, setProducts] = useState<ProductData[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
@@ -247,9 +248,16 @@ function ProductsContent() {
   useEffect(() => {
     const load = async () => {
       setLoadingProducts(true);
-      const data = await getProducts();
-      setProducts(data as any);
-      setLoadingProducts(false);
+      setErrorMsg('');
+      try {
+        const data = await getProducts();
+        setProducts(data as any);
+      } catch (err: any) {
+        console.error('Failed to load products:', err);
+        setErrorMsg(err.message || 'Database connection error. Please ensure the database is running.');
+      } finally {
+        setLoadingProducts(false);
+      }
     };
     load();
   }, []);
@@ -648,7 +656,20 @@ function ProductsContent() {
             </div>
 
             {/* Grid display */}
-            {loadingProducts ? (
+            {errorMsg ? (
+              <div className="text-center py-16 bg-white rounded-3xl border border-red-100 max-w-xl mx-auto space-y-4 my-8 p-8 animate-zoom-in">
+                <div className="w-12 h-12 bg-red-50 rounded-full flex justify-center items-center text-red-500 mx-auto">
+                  <X className="w-6 h-6" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-league font-bold text-spruce">Database Connection Issue</h3>
+                  <p className="text-xs text-red-600 leading-relaxed font-semibold">{errorMsg}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
+                    We could not retrieve products from the database server. Please verify your connection status and ensure the database is running.
+                  </p>
+                </div>
+              </div>
+            ) : loadingProducts ? (
               <div className="min-h-[300px] flex items-center justify-center">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>

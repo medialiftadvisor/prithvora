@@ -2,7 +2,16 @@
 
 import { db } from '@/lib/db';
 import { Role, OrderStatus, PartnerTier } from '@prisma/client';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath as nextRevalidatePath } from 'next/cache';
+
+function revalidatePath(path: string) {
+  try {
+    nextRevalidatePath(path);
+  } catch (error) {
+    // Suppress "static generation store missing" errors when executed outside Next.js router context
+  }
+}
+
 
 // ==========================================
 // 1. PRODUCTS ACTIONS
@@ -17,9 +26,9 @@ export async function getProducts() {
       orderBy: { createdAt: 'desc' },
     });
     return JSON.parse(JSON.stringify(products));
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching products:', error);
-    return [];
+    throw new Error(error.message || 'Failed to connect to database.');
   }
 }
 
