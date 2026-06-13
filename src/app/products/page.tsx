@@ -222,6 +222,7 @@ function ProductsContent() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<ProductData | null>(null);
+  const [activeStore, setActiveStore] = useState<'normal' | 'organic'>('normal');
 
   // Wishlist and Checkout view states
   const showWishlistOnly = searchParams.get('wishlist') === 'true';
@@ -294,10 +295,11 @@ function ProductsContent() {
 
   // Filter products
   const filteredProducts = products.filter((p) => {
+    const matchesStore = activeStore === 'organic' ? p.isOrganic === true : p.isOrganic === false;
     const matchesCat = activeCategory === 'All' || p.category === activeCategory;
     const matchesSearch = (p.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) || (p.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     const matchesWishlist = !showWishlistOnly || wishlist.includes(p.id);
-    return matchesCat && matchesSearch && matchesWishlist;
+    return matchesStore && matchesCat && matchesSearch && matchesWishlist;
   });
 
   const handleProductClick = (product: ProductData) => {
@@ -589,16 +591,88 @@ function ProductsContent() {
           /* VIEW 2: NORMAL CATALOG SCREEN */
           <>
             {/* Header */}
-            <section className="text-center py-10 space-y-3">
+            <section className="text-center py-10 space-y-4">
               <h1 className="text-4xl sm:text-5xl font-league font-black text-spruce tracking-tight">
-                {showWishlistOnly ? 'Your Organic Wishlist' : 'Organic Agri-Store'}
+                {showWishlistOnly 
+                  ? 'Your Saved Products' 
+                  : (activeStore === 'organic' ? 'Organic Store' : 'Prithvora Agri-Store')}
               </h1>
               <p className="text-sm text-gray-500 max-w-xl mx-auto">
                 {showWishlistOnly 
-                  ? 'All your favorite items ready to be harvested and added to your weekly kitchen basket.'
-                  : 'Pure food, direct from local growers. Cold-chain delivered for maximum nutritional integrity.'}
+                  ? 'Your handpicked selections ready to be ordered.'
+                  : (activeStore === 'organic' 
+                      ? 'Preview our certified 100% pesticide-free, single-origin organic crops. Fresh from Rajasthan farms.' 
+                      : 'Pure and premium selected agricultural products direct from farmers. Cold-chain fresh.')}
               </p>
             </section>
+
+            {/* Store Type Switcher */}
+            {!showWishlistOnly && (
+              <div className="flex justify-center mb-8">
+                <div className="bg-spruce/5 p-1 rounded-full border border-spruce/10 flex gap-1.5 w-full max-w-xs sm:max-w-md shadow-inner">
+                  <button
+                    onClick={() => {
+                      setActiveStore('normal');
+                      setActiveCategory('All');
+                    }}
+                    className={`flex-1 px-5 py-2.5 rounded-full text-xs font-bold font-league tracking-widest uppercase transition-all duration-300 cursor-pointer ${
+                      activeStore === 'normal'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-spruce hover:bg-spruce/5'
+                    }`}
+                  >
+                    Normal Products
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveStore('organic');
+                      setActiveCategory('All');
+                    }}
+                    className={`flex-1 px-5 py-2.5 rounded-full text-xs font-bold font-league tracking-widest uppercase transition-all duration-300 flex items-center justify-center gap-1.5 cursor-pointer ${
+                      activeStore === 'organic'
+                        ? 'bg-primary text-white shadow-md'
+                        : 'text-spruce hover:bg-spruce/5'
+                    }`}
+                  >
+                    Organic Store
+                    <span className="bg-accent/20 text-accent text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-normal">
+                      Soon
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Organic Store Coming Soon Banner */}
+            {activeStore === 'organic' && !showWishlistOnly && (
+              <div className="relative overflow-hidden bg-gradient-to-br from-spruce to-[#070e09] border border-accent/20 rounded-3xl p-8 sm:p-12 mb-12 shadow-xl animate-fade-in">
+                {/* Decorative glowing blobs */}
+                <div className="absolute -top-20 -left-20 w-60 h-60 bg-primary/10 rounded-full blur-3xl" />
+                <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-accent/10 rounded-full blur-3xl" />
+                
+                <div className="relative z-10 max-w-2xl space-y-6 text-center sm:text-left">
+                  <span className="inline-flex items-center gap-1.5 bg-accent/10 text-accent text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-accent/20">
+                    🌾 Harvesting Soon
+                  </span>
+                  <h2 className="text-3xl sm:text-5xl font-league font-black text-white leading-none tracking-tight">
+                    The Prithvora Organic Store
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-lg">
+                    We are building a direct supply chain of 100% certified pesticide-free organic grains, pulses, cold-pressed oils, and raw honey. Our partner clusters in Alwar and Udaipur are completing their organic compliance certifications.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row gap-4 pt-2 justify-center sm:justify-start">
+                    <div className="flex items-center gap-2 text-white bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl text-xs backdrop-blur-sm">
+                      <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
+                      <span>Expected Launch: July 2026</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-300 bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl text-xs backdrop-blur-sm">
+                      <span>Previewing upcoming range below. Add to wishlist!</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Toolbar / Category Grid Banners */}
             <div className="space-y-6 mb-12">
@@ -774,14 +848,24 @@ function ProductsContent() {
 
                                 <div className="flex justify-between items-center pt-2">
                                   <span className="text-lg font-black text-spruce">₹{p.price}</span>
-                                  <button
-                                    onClick={() => addToCart(p, 1)}
-                                    className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                                  >
-                                    <ShoppingBag className="w-3.5 h-3.5" />
-                                    Add to Cart
-                                  </button>
+                                  {p.isOrganic ? (
+                                    <button
+                                      disabled
+                                      className="px-4 py-2 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl border border-gray-200 cursor-not-allowed flex items-center gap-1.5"
+                                    >
+                                      Coming Soon
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => addToCart(p, 1)}
+                                      className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                                    >
+                                      <ShoppingBag className="w-3.5 h-3.5" />
+                                      Add to Cart
+                                    </button>
+                                  )}
                                 </div>
+
                               </div>
 
                             </div>
@@ -858,16 +942,25 @@ function ProductsContent() {
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => {
-                    addToCart(selectedProduct, 1);
-                    setSelectedProduct(null);
-                  }}
-                  className="flex-1 py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-all flex items-center justify-center gap-2"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Add To Basket
-                </button>
+                {selectedProduct.isOrganic ? (
+                  <button
+                    disabled
+                    className="flex-1 py-3 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed border border-gray-200 flex items-center justify-center gap-2"
+                  >
+                    Coming Soon (Harvesting)
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      addToCart(selectedProduct, 1);
+                      setSelectedProduct(null);
+                    }}
+                    className="flex-1 py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-light transition-all flex items-center justify-center gap-2"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Add To Basket
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     toggleWishlist(selectedProduct.id);

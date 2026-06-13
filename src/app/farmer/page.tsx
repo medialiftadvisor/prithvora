@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sprout, ShieldCheck, DollarSign, Award, Users, Check, MapPin, ArrowRight } from 'lucide-react';
-import { registerFarmer } from '@/app/actions';
+import React, { useState, useEffect } from 'react';
+import { Sprout, ShieldCheck, DollarSign, Award, Users, Check, MapPin, ArrowRight, Star } from 'lucide-react';
+import { registerFarmer, getFarmers } from '@/app/actions';
 
 interface CenterData {
   id: string;
@@ -62,6 +62,8 @@ export default function FarmerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [farmerCode, setFarmerCode] = useState('');
+  const [farmersList, setFarmersList] = useState<any[]>([]);
+  const [loadingFarmers, setLoadingFarmers] = useState(true);
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -71,6 +73,21 @@ export default function FarmerPage() {
     crop: 'A2 Milk',
     model: 'Contract Farming'
   });
+
+  const fetchFarms = async () => {
+    try {
+      const data = await getFarmers();
+      setFarmersList(data || []);
+    } catch (err) {
+      console.error('Failed to load farmers:', err);
+    } finally {
+      setLoadingFarmers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFarms();
+  }, []);
 
   const handleFarmerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +108,7 @@ export default function FarmerPage() {
     if (res.success) {
       setFarmerCode(res.farmerId || '');
       setFormSubmitted(true);
+      fetchFarms();
       // Automatically dismiss success message after 10s
       setTimeout(() => {
         setFormSubmitted(false);
@@ -98,6 +116,11 @@ export default function FarmerPage() {
     } else {
       setErrorMsg(res.error || 'Failed to submit registration.');
     }
+  };
+
+  const getGrowersCountForHub = (hubKey: string) => {
+    const matched = farmersList.filter(f => f.district.toLowerCase() === hubKey.toLowerCase());
+    return `${matched.length} Registered Farmer${matched.length !== 1 ? 's' : ''}`;
   };
 
   const activeCenter = CENTER_DETAILS[selectedState];
@@ -182,7 +205,7 @@ export default function FarmerPage() {
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div>
                   <span className="text-gray-400 block">Active Growers</span>
-                  <span className="font-bold text-spruce block mt-0.5">{activeCenter.growers}</span>
+                  <span className="font-bold text-spruce block mt-0.5">{getGrowersCountForHub(selectedState)}</span>
                 </div>
                 <div>
                   <span className="text-gray-400 block">Daily Intake Volume</span>
@@ -269,11 +292,87 @@ export default function FarmerPage() {
 
         </section>
 
+        {/* Registered Farmers Registry */}
+        <section className="space-y-6">
+          <div className="text-center space-y-2 max-w-xl mx-auto">
+            <h2 className="text-2xl font-league font-black text-spruce tracking-wide">Our Registered Growers Registry</h2>
+            <p className="text-xs text-gray-500 font-inter">
+              Direct verification, premium single-origin farming, and transparent payouts. Explore our active verified farmer partners in Rajasthan.
+            </p>
+          </div>
+
+          {loadingFarmers ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : farmersList.length === 0 ? (
+            <div className="text-center p-8 bg-white rounded-3xl border border-gray-100 text-gray-400 text-xs font-semibold">
+              No registered growers found. Check back soon!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {farmersList.map((farmer) => (
+                <div 
+                  key={farmer.id}
+                  className="bg-white p-6 rounded-3xl border border-gray-100 shadow-xs hover:border-primary/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-league font-bold text-base text-spruce tracking-wide">{farmer.fullName}</h3>
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-primary" />
+                          {farmer.district}, {farmer.state}
+                        </p>
+                      </div>
+                      <span className="flex items-center gap-1 bg-accent/10 text-accent font-bold text-[10px] px-2 py-0.5 rounded-full">
+                        <Star className="w-3 h-3 fill-accent text-accent" />
+                        {farmer.rating?.toFixed(1) || '5.0'}
+                      </span>
+                    </div>
+
+                    <div className="border-t border-gray-50 pt-3 space-y-2 text-xs text-gray-600">
+                      <div className="flex justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">Primary Crops:</span>
+                        <span className="font-semibold text-spruce">{farmer.primaryCrops}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">Farm Size:</span>
+                        <span className="font-semibold text-spruce">{farmer.farmSizeAcres} Acres</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase">Procurement Model:</span>
+                        <span className="font-semibold text-primary">{farmer.procurementModel}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-50 flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-gray-400 uppercase">Status:</span>
+                    <span className={`px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                      farmer.status === 'APPROVED' 
+                        ? 'bg-primary/10 text-primary' 
+                        : farmer.status === 'REJECTED' 
+                        ? 'bg-red-50 text-red-600' 
+                        : 'bg-yellow-50 text-yellow-600'
+                    }`}>
+                      {farmer.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Farmer Registration Form */}
         <section className="max-w-3xl mx-auto bg-white border border-gray-100 p-8 sm:p-12 rounded-3xl shadow-sm space-y-6">
           <div className="text-center space-y-2">
+            <div className="inline-block bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-1">
+              🆓 Registration: 100% Free / निःशुल्क पंजीकरण
+            </div>
             <h2 className="text-2xl font-league font-black text-spruce">Farmer Registration Form</h2>
-            <p className="text-xs text-gray-400">Join our network. Our regional field assistants will visit your farm to verify within 48 hours.</p>
+            <p className="text-xs text-gray-400">Join our network for free. Our regional field assistants will visit your farm to verify within 48 hours.</p>
           </div>
 
           {errorMsg && (
@@ -392,7 +491,7 @@ export default function FarmerPage() {
                 disabled={isSubmitting}
                 className="w-full py-3 bg-primary text-white font-league font-bold text-xs tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                {isSubmitting ? 'Submitting Application...' : 'Submit Farmer Application'}
+                {isSubmitting ? 'Submitting Application...' : 'Submit Free Farmer Application (निःशुल्क आवेदन)'}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>

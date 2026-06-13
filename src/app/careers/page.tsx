@@ -97,6 +97,159 @@ export default function CareersPage() {
       desc: 'Act as the primary point of contact for accredited venture funds, corporate backers, and seed angels. Manage capital allocation modeling, financial reporting, and series-A preparation.',
       experience: '6+ Years in Venture Capital Relations, Investment Banking, or Finance Strategy',
       qualifications: 'MBA in Finance, CFA Charterholder, or equivalent professional degree'
+    },
+    {
+      title: 'Organic Compliance & Audit Specialist',
+      department: 'Farm Operations',
+      location: 'Udaipur Cluster, Rajasthan (On-field)',
+      type: 'Full-Time',
+      desc: 'Perform on-farm audits for pesticide residues, chemical fertilizer exclusions, and natural soil condition adherence. Review certification logs and maintain farm compliance profiles.',
+      experience: '2+ Years in Agriculture Auditing or Organic Compliance Testing',
+      qualifications: 'B.Sc. in Agriculture or Environmental Science'
+    },
+    {
+      title: 'B2B Institutional Sales Manager',
+      department: 'Sales & Marketing',
+      location: 'Gurugram HQs (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Establish bulk supply contracts with luxury hotels, organic restaurants, and premium supermarket chains for raw honey, Vedic ghee, and wood-pressed oils. Exceed volume targets.',
+      experience: '4+ Years in FMCG B2B Sales, Corporate Gifting or Institutional Accounts',
+      qualifications: 'MBA or Bachelor\'s Degree in Business Administration, Marketing or related field'
+    },
+    {
+      title: 'IoT Sensor & Telemetry Engineer',
+      department: 'Engineering',
+      location: 'Jaipur Hub / Behror (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Design and deploy temperature-monitoring IoT arrays across our fleet of cold-vans and collection centers. Integrate GPS and thermal data feeds directly into our logistics database.',
+      experience: '3+ Years in Embedded Systems, IoT Telemetry, or Sensors Engineering',
+      qualifications: 'B.Tech / B.E. in Electronics, Electrical or Instrumentational Engineering'
+    },
+    {
+      title: 'QA/QC Lab Analyst',
+      department: 'Manufacturing & Quality',
+      location: 'Behror Facility, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Perform daily biochemical testing on incoming raw A2 milk (casein assays), wildflower honey (enzymes, moisture), and yellow mustard oils. Manage laboratory safety documentation.',
+      experience: '2+ Years in Food Labs, Dairy Chemistry or Agri-produce Testing',
+      qualifications: 'M.Sc. or B.Tech in Biotechnology, Food Science, Chemistry or Microbiology'
+    },
+    {
+      title: 'Franchise Store Operations Director',
+      department: 'Retail & Operations',
+      location: 'Jaipur / Gurugram (Travel required)',
+      type: 'Full-Time',
+      desc: 'Manage operational audits, inventory pipelines, franchise owner relations, and store compliance standards for Prithvora physical retail outlets. Train store staff on branding.',
+      experience: '6+ Years in Retail Franchise Management, FMCG Store Operations',
+      qualifications: 'MBA or Postgraduate in Retail Management or Operations'
+    },
+    {
+      title: 'Creative Brand Storyteller & Designer',
+      department: 'Sales & Marketing',
+      location: 'Gurugram HQs (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Document the journey of our Rajasthan farmers, capture rich visual assets, write premium package copies, and design aesthetic campaign creatives for digital channels.',
+      experience: '3+ Years in Brand Marketing, Advertising copywriting, or Graphic Design',
+      qualifications: 'Bachelor\'s Degree in Fine Arts, Communications, Design or Journalism'
+    },
+    {
+      title: 'Behror Milk Collection Coordinator',
+      department: 'Farm Operations',
+      location: 'Behror Chilling Point (On-site)',
+      type: 'Full-Time',
+      desc: 'Supervise daily milk collection logs, perform lactometer density audits at procurement gates, and ensure prompt payments logging for dairy farmer partners.',
+      experience: '1+ Years in Dairy Collection Centers or Rural Procurement Operations',
+      qualifications: 'Diploma in Agriculture, Dairy Tech, or high school with relevant experience'
+    },
+    {
+      title: 'Warehouse & Inventory Manager',
+      department: 'Logistics',
+      location: 'Behror Facility, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Manage storage layouts, dispatch schedules, and shelf-life tracking for packaged oils, spices, and honey. Implement strict FIFO rotation and logistics security checks.',
+      experience: '3+ Years in FMCG Warehousing, Inventory Control, or Depot Management',
+      qualifications: 'Degree in Logistics, Business Operations, or Material Management'
+    },
+    {
+      title: 'Corporate HR & Culture Lead',
+      department: 'Human Resources',
+      location: 'Gurugram HQs (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Manage end-to-end recruitment for corporate, technical, and field-level roles. Build training modules for field assistants, and spearhead workplace diversity initiatives.',
+      experience: '5+ Years in Talent Acquisition, HR Generalist Operations in FMCG/Agritech',
+      qualifications: 'MBA or Master\'s in Human Resource Management or Psychology'
+    },
+    {
+      title: 'Solar Chilling Plant Engineer',
+      department: 'Engineering',
+      location: 'Alwar Hub, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Maintain off-grid solar panels and solar thermal chilling setups at regional procurement nodes. Troubleshoot grid failures and optimize power storage systems.',
+      experience: '3+ Years in Solar Energy Systems, Industrial Plant Maintenance',
+      qualifications: 'B.Tech / Diploma in Mechanical, Electrical or Renewable Energy Engineering'
+    },
+    {
+      title: 'Organic Fertilizers & Inputs Advisor',
+      department: 'Farm Operations',
+      location: 'Jodhpur Hub, Rajasthan (On-field)',
+      type: 'Full-Time',
+      desc: 'Conduct training workshops on bio-composting, vermiculture, liquid bio-fertilizers (Jeevamrut), and natural pesticide prep. Support farmers in organic transition.',
+      experience: '2+ Years in Organic inputs formulation or Sustainable Farming Consultancy',
+      qualifications: 'B.Sc. in Agriculture, Soil Chemistry, or organic farming certifications'
+    },
+    {
+      title: 'E-commerce Operations Specialist',
+      department: 'Retail & Operations',
+      location: 'Jaipur Hub (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Manage online sales channels, customer order flows, coordinates with cold-chain dispatcher for timely last-mile delivery. Resolve e-commerce shipping complaints.',
+      experience: '2+ Years in E-commerce Store Management, Shopify or custom web portals',
+      qualifications: 'Bachelor\'s Degree in Business, Marketing or IT'
+    },
+    {
+      title: 'Procurement Executive (Dry Seeds)',
+      department: 'Finance & Operations',
+      location: 'Bikaner Hub, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Negotiate buyback rates for raw yellow mustard seeds, black sesame seeds, cumin, and pulses from farmer cooperatives. Maintain quality logs and contract terms.',
+      experience: '2+ Years in Agricultural commodity buying, Grain trade or FMCG purchasing',
+      qualifications: 'Bachelor\'s in Commerce, Agri-business Management or Economics'
+    },
+    {
+      title: 'Packaging Operations Lead',
+      department: 'Manufacturing & Quality',
+      location: 'Behror Facility, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Manage automated glass packaging and biodegradable pouch-sealing assembly lines. Minimize packaging materials waste and ensure airtight sealing protocols.',
+      experience: '3+ Years in FMCG Packing Line Management or Food Packaging Systems',
+      qualifications: 'B.Tech or Diploma in Packaging Technology or Mechanical Engineering'
+    },
+    {
+      title: 'Area Marketing Executive',
+      department: 'Sales & Marketing',
+      location: 'Jaipur / NCR (On-field)',
+      type: 'Full-Time',
+      desc: 'Execute society tasting booths, organic food awareness seminars, and local store launching campaigns. Coordinate micro-influencer outreach.',
+      experience: '2+ Years in Direct Marketing, Event Management or B2C Sales promotion',
+      qualifications: 'Bachelor\'s Degree in Marketing, Public Relations, or Business'
+    },
+    {
+      title: 'Franchise Partner Support Executive',
+      department: 'Retail & Operations',
+      location: 'Jaipur Hub (Hybrid)',
+      type: 'Full-Time',
+      desc: 'Act as the single window of contact for franchise store owners. Resolve daily stock orders, return logs, promotional material dispatches, and POS software issues.',
+      experience: '2+ Years in Client Relations, Franchise support, or Retail operations coordination',
+      qualifications: 'Bachelor\'s Degree in Commerce, Communications, or Management'
+    },
+    {
+      title: 'Logistics Fleet Dispatcher',
+      department: 'Logistics',
+      location: 'Behror Hub, Rajasthan (On-site)',
+      type: 'Full-Time',
+      desc: 'Coordinate morning route scheduling for insulated cold-chain vans, track real-time transit logs, manage driver shifts, and verify delivery signatures.',
+      experience: '2+ Years in Fleet Dispatching, Truck Logistics or Transport routing',
+      qualifications: 'Diploma or Degree in Supply Chain, Logistics, or Business Admin'
     }
   ];
 

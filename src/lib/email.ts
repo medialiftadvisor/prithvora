@@ -1,0 +1,270 @@
+import nodemailer from 'nodemailer';
+
+interface EmailPayload {
+  subject: string;
+  html: string;
+  text?: string;
+}
+
+export async function sendMail(payload: EmailPayload) {
+  const host = process.env.SMTP_HOST || 'smtp.mailtrap.io';
+  const port = parseInt(process.env.SMTP_PORT || '2525', 10);
+  const user = process.env.SMTP_USER || 'smtp_user';
+  const pass = process.env.SMTP_PASS || 'smtp_pass';
+  const receiver = process.env.CONTACT_EMAIL_RECEIVER || 'info@prithvora.com';
+
+  console.log(`[Email Dispatch] Attempting to dispatch email notification: "${payload.subject}" to: ${receiver}`);
+
+  // Check if SMTP is using dummy values
+  const isDummySMTP = 
+    host === 'smtp.mailtrap.io' && 
+    user === 'smtp_user' && 
+    pass === 'smtp_pass';
+
+  if (isDummySMTP) {
+    console.warn('⚠️ [Email Dispatch] SMTP credentials are set to mock defaults (mailtrap.io). Email delivery is bypassed.');
+    logEmailFallback(receiver, payload);
+    return { success: false, reason: 'Dummy SMTP credentials' };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465, // true for 465, false for other ports
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: `"PRITHVORA Notification" <${user}>`,
+      to: receiver,
+      subject: payload.subject,
+      text: payload.text || payload.subject,
+      html: payload.html,
+    });
+
+    console.log('[Email Dispatch] Email sent successfully! MessageId:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error: any) {
+    console.error('❌ [Email Dispatch] Failed to send email via SMTP. Error details:', error);
+    logEmailFallback(receiver, payload);
+    return { success: false, error: error.message || 'SMTP transport failed' };
+  }
+}
+
+function logEmailFallback(receiver: string, payload: EmailPayload) {
+  console.log(`
+=========================================
+📩 FALLBACK EMAIL LOG (SMTP BYPASSED/FAILED)
+-----------------------------------------
+Recipient: ${receiver}
+Subject:   ${payload.subject}
+Body (HTML):
+${payload.html}
+=========================================
+`);
+}
+
+/**
+ * Generators for custom email templates
+ */
+export function getContactEmailTemplate(data: { name: string; email: string; phone?: string; subject: string; message: string }) {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+      <h2 style="color: #0b1d12; border-bottom: 2px solid #bda157; padding-bottom: 10px; font-weight: 800;">New Contact Form Message</h2>
+      <p style="font-size: 14px; color: #555555; line-height: 1.6;">You have received a new contact inquiry from the PRITHVORA website.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee; width: 120px;">Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.name}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Email:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;"><a href="mailto:${data.email}" style="color: #185f39; text-decoration: none; font-weight: bold;">${data.email}</a></td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Phone:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.phone || 'Not provided'}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Subject:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.subject}</td>
+        </tr>
+      </table>
+      <div style="margin-top: 25px; padding: 15px; background-color: #f4f6f4; border-left: 4px solid #185f39; border-radius: 4px;">
+        <h4 style="margin: 0 0 10px 0; color: #0b1d12; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Message:</h4>
+        <p style="margin: 0; font-size: 13px; color: #444444; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+      </div>
+      <p style="font-size: 11px; color: #aaaaaa; margin-top: 30px; text-align: center; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+        This email was automatically generated by PRITHVORA Systems.
+      </p>
+    </div>
+  `;
+}
+
+export function getInvestorEmailTemplate(data: { fullName: string; email: string; phone: string; investmentRange: string; accreditedStatus: boolean; message?: string }) {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+      <h2 style="color: #0b1d12; border-bottom: 2px solid #bda157; padding-bottom: 10px; font-weight: 800;">New Investor Lead</h2>
+      <p style="font-size: 14px; color: #555555; line-height: 1.6;">An accredited investor has submitted a request to review the PRITHVORA pitch deck and business plan.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee; width: 150px;">Investor Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.fullName}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Email:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;"><a href="mailto:${data.email}" style="color: #185f39; text-decoration: none; font-weight: bold;">${data.email}</a></td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Phone:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.phone}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Accredited Status:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold; color: ${data.accreditedStatus ? '#185f39' : '#bda157'}">${data.accreditedStatus ? 'Accredited (YES)' : 'Accredited (NO)'}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Target Investment:</th>
+          <td style="padding: 10px; font-size: 14px; color: #bda157; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.investmentRange}</td>
+        </tr>
+      </table>
+      ${data.message ? `
+      <div style="margin-top: 25px; padding: 15px; background-color: #f4f6f4; border-left: 4px solid #bda157; border-radius: 4px;">
+        <h4 style="margin: 0 0 10px 0; color: #0b1d12; font-size: 13px; text-transform: uppercase;">Message / Context:</h4>
+        <p style="margin: 0; font-size: 13px; color: #444444; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+      </div>
+      ` : ''}
+      <p style="font-size: 11px; color: #aaaaaa; margin-top: 30px; text-align: center; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+        This email was automatically generated by PRITHVORA Systems.
+      </p>
+    </div>
+  `;
+}
+
+export function getPartnerEmailTemplate(data: { fullName: string; email: string; phone: string; companyName?: string; tier: string; experienceYears: number; investmentBudget: number }) {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+      <h2 style="color: #0b1d12; border-bottom: 2px solid #bda157; padding-bottom: 10px; font-weight: 800;">New Franchise Partner Intent</h2>
+      <p style="font-size: 14px; color: #555555; line-height: 1.6;">A potential business partner has registered interest to open a franchise store cluster.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee; width: 160px;">Partner Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.fullName}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Email:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;"><a href="mailto:${data.email}" style="color: #185f39; text-decoration: none; font-weight: bold;">${data.email}</a></td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Phone:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.phone}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Company Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.companyName || 'Individual'}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Target Partner Tier:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.tier}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Relevant Experience:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.experienceYears} Years</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Investment Budget:</th>
+          <td style="padding: 10px; font-size: 14px; color: #185f39; border-bottom: 1px solid #eeeeee; font-weight: bold;">₹${data.investmentBudget.toLocaleString()}</td>
+        </tr>
+      </table>
+      <p style="font-size: 11px; color: #aaaaaa; margin-top: 30px; text-align: center; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+        This email was automatically generated by PRITHVORA Systems.
+      </p>
+    </div>
+  `;
+}
+
+export function getFarmerEmailTemplate(data: { fullName: string; phone: string; state: string; district: string; farmSizeAcres: number; primaryCrops: string; procurementModel: string }) {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+      <h2 style="color: #0b1d12; border-bottom: 2px solid #bda157; padding-bottom: 10px; font-weight: 800;">New Farmer Registration</h2>
+      <p style="font-size: 14px; color: #555555; line-height: 1.6;">A farmer has registered to join our regional crop procurement network.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee; width: 160px;">Farmer Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.fullName}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Phone Number:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold; color: #185f39;">${data.phone}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">State (Region):</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.state}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">District:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.district}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Farm Size (Acres):</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.farmSizeAcres} Acres</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Primary Crops:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold; color: #185f39;">${data.primaryCrops}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Procurement Model:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.procurementModel}</td>
+        </tr>
+      </table>
+      <p style="font-size: 11px; color: #aaaaaa; margin-top: 30px; text-align: center; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+        This email was automatically generated by PRITHVORA Systems.
+      </p>
+    </div>
+  `;
+}
+
+export function getCareersEmailTemplate(data: { fullName: string; email: string; phone: string; position: string; resumeUrl?: string; coverLetter?: string }) {
+  return `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0f0f0; border-radius: 12px; background-color: #ffffff;">
+      <h2 style="color: #0b1d12; border-bottom: 2px solid #bda157; padding-bottom: 10px; font-weight: 800;">New Career Application</h2>
+      <p style="font-size: 14px; color: #555555; line-height: 1.6;">A candidate has applied for a position at PRITHVORA.</p>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee; width: 150px;">Applicant Name:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold;">${data.fullName}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Email Address:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;"><a href="mailto:${data.email}" style="color: #185f39; text-decoration: none; font-weight: bold;">${data.email}</a></td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Phone Number:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.phone}</td>
+        </tr>
+        <tr>
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Target Position:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee; font-weight: bold; color: #185f39;">${data.position}</td>
+        </tr>
+        <tr style="background-color: #fcfbf7;">
+          <th style="text-align: left; padding: 10px; font-size: 13px; color: #777777; border-bottom: 1px solid #eeeeee;">Resume Link / URL:</th>
+          <td style="padding: 10px; font-size: 14px; color: #333333; border-bottom: 1px solid #eeeeee;">${data.resumeUrl ? `<a href="${data.resumeUrl}" target="_blank" style="color: #185f39; text-decoration: underline; font-weight: bold;">View Resume</a>` : 'Not uploaded'}</td>
+        </tr>
+      </table>
+      ${data.coverLetter ? `
+      <div style="margin-top: 25px; padding: 15px; background-color: #f4f6f4; border-left: 4px solid #185f39; border-radius: 4px;">
+        <h4 style="margin: 0 0 10px 0; color: #0b1d12; font-size: 13px; text-transform: uppercase;">Cover Letter / Statement:</h4>
+        <p style="margin: 0; font-size: 13px; color: #444444; line-height: 1.6; white-space: pre-wrap;">${data.coverLetter}</p>
+      </div>
+      ` : ''}
+      <p style="font-size: 11px; color: #aaaaaa; margin-top: 30px; text-align: center; border-top: 1px solid #f0f0f0; padding-top: 15px;">
+        This email was automatically generated by PRITHVORA Systems.
+      </p>
+    </div>
+  `;
+}

@@ -3,6 +3,7 @@
 import { db } from '@/lib/db';
 import { Role, OrderStatus, PartnerTier } from '@prisma/client';
 import { revalidatePath as nextRevalidatePath } from 'next/cache';
+import { sendMail, getFarmerEmailTemplate, getContactEmailTemplate, getPartnerEmailTemplate, getInvestorEmailTemplate, getCareersEmailTemplate } from '@/lib/email';
 
 function revalidatePath(path: string) {
   try {
@@ -270,6 +271,13 @@ export async function registerFarmer(data: {
       },
     });
     revalidatePath('/admin');
+    
+    // Dispatch email notification asynchronously without blocking response
+    sendMail({
+      subject: `New Farmer Registration: ${data.fullName} (${data.district})`,
+      html: getFarmerEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch farmer registration email:', err));
+
     return { success: true, farmerId: farmer.id };
   } catch (error: any) {
     console.error('Error registering farmer:', error);
@@ -330,6 +338,13 @@ export async function registerPartner(data: {
       },
     });
     revalidatePath('/admin');
+
+    // Dispatch email notification asynchronously
+    sendMail({
+      subject: `New Franchise Partner Request: ${data.fullName} (${data.tier})`,
+      html: getPartnerEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch partner email:', err));
+
     return { success: true, partnerId: partner.id };
   } catch (error: any) {
     console.error('Error registering partner:', error);
@@ -388,6 +403,13 @@ export async function submitInvestorLead(data: {
       },
     });
     revalidatePath('/admin');
+
+    // Dispatch email notification asynchronously
+    sendMail({
+      subject: `New Investor Lead: ${data.fullName} (${data.investmentRange})`,
+      html: getInvestorEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch investor email:', err));
+
     return { success: true, leadId: lead.id };
   } catch (error: any) {
     console.error('Error submitting investor lead:', error);
@@ -446,6 +468,13 @@ export async function submitCareersApplication(data: {
       },
     });
     revalidatePath('/admin');
+
+    // Dispatch email notification asynchronously
+    sendMail({
+      subject: `New Job Application: ${data.fullName} - ${data.position}`,
+      html: getCareersEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch careers email:', err));
+
     return { success: true, applicationId: app.id };
   } catch (error: any) {
     console.error('Error submitting application:', error);
@@ -486,6 +515,13 @@ export async function submitContactMessage(data: {
         status: 'UNREAD',
       },
     });
+
+    // Dispatch email notification asynchronously
+    sendMail({
+      subject: `New Contact Inquiry: ${data.subject}`,
+      html: getContactEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch contact email:', err));
+
     return { success: true, messageId: msg.id };
   } catch (error: any) {
     console.error('Error submitting contact message:', error);

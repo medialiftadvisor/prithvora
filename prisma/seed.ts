@@ -27,7 +27,7 @@ const PRODUCTS = [
     nutrition: 'Protein: 3.3g, Fats: 3.8g, Calcium: 120mg, Vitamin D: 40 IU (per 100ml)',
     rating: 4.8,
     stock: 200,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Cold Pressed Yellow Mustard Oil',
@@ -35,12 +35,12 @@ const PRODUCTS = [
     category: 'Cold Pressed Oils',
     price: 260,
     image: '/oils.png',
-    description: 'Wood-pressed (Kachi Ghani) oil extracted from premium organic yellow mustard seeds. Rich in natural aroma and pungent taste.',
+    description: 'Wood-pressed (Kachi Ghani) oil extracted from premium yellow mustard seeds. Rich in natural aroma and pungent taste.',
     benefits: 'High in Omega-3 and monounsaturated fatty acids, improves digestion, supports cardiovascular health.',
     nutrition: 'Monounsaturated Fats: 60g, Polyunsaturated Fats: 21g, Saturated Fats: 12g (per 100ml)',
     rating: 4.9,
     stock: 90,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Cold-Pressed Pomegranate Juice',
@@ -61,16 +61,16 @@ const PRODUCTS = [
     category: 'Fresh Fruits',
     price: 140,
     image: '/produce.png',
-    description: 'Fresh, juicy organic strawberries hand-harvested in the early morning from partner farm clusters in Mahabaleshwar.',
+    description: 'Fresh, juicy strawberries hand-harvested in the early morning from partner farm clusters in Mahabaleshwar.',
     benefits: 'High fiber content, rich source of vitamin C, helps control glycemic load and supports skin glowing.',
     nutrition: 'Vitamin C: 98% DV, Dietary Fiber: 2.2g, Calories: 32 kcal (per 100g)',
     rating: 4.6,
     stock: 40,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Sun-Ripened Cherry Tomatoes',
-    slug: 'organic-cherry-tomatoes',
+    slug: 'sun-ripened-cherry-tomatoes',
     category: 'Fresh Vegetables',
     price: 85,
     image: '/produce.png',
@@ -79,7 +79,7 @@ const PRODUCTS = [
     nutrition: 'Lycopene: 4.2mg, Vitamin A: 15% DV, Calories: 18 kcal, Sodium: 5mg (per 100g)',
     rating: 4.8,
     stock: 55,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Cow Ghee (Bilona Method)',
@@ -95,8 +95,8 @@ const PRODUCTS = [
     isOrganic: true
   },
   {
-    name: 'Organic Spiced Mango Pickle',
-    slug: 'organic-mango-pickle',
+    name: 'Spiced Mango Pickle',
+    slug: 'spiced-mango-pickle',
     category: 'Pickles',
     price: 210,
     image: '/produce.png',
@@ -105,7 +105,7 @@ const PRODUCTS = [
     nutrition: 'Sodium: 240mg, Vitamin C: 12% DV, Carbohydrates: 3g (per 15g serving)',
     rating: 4.9,
     stock: 110,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Vedic Gir Cow A2 Ghee',
@@ -157,10 +157,10 @@ const PRODUCTS = [
     nutrition: 'Capsaicin Level: Mild, Vitamin A: 85% DV, Potassium: 340mg (per 100g)',
     rating: 4.8,
     stock: 150,
-    isOrganic: true
+    isOrganic: false
   },
   {
-    name: 'Stone-Ground Organic Chana Dal',
+    name: 'Stone-Ground Chana Dal',
     slug: 'stone-ground-chana-dal',
     category: 'Organic Spices',
     price: 140,
@@ -170,7 +170,7 @@ const PRODUCTS = [
     nutrition: 'Protein: 22g, Dietary Fiber: 11g, Carbohydrates: 58g (per 100g)',
     rating: 4.8,
     stock: 160,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Cold Pressed Sesame Oil',
@@ -183,7 +183,7 @@ const PRODUCTS = [
     nutrition: 'Monounsaturated Fats: 40g, Polyunsaturated Fats: 42g, Vitamin E: 15% DV (per 100ml)',
     rating: 4.9,
     stock: 85,
-    isOrganic: true
+    isOrganic: false
   },
   {
     name: 'Organic Aloe Vera Juice',
@@ -235,7 +235,7 @@ const PRODUCTS = [
     nutrition: 'Capsaicin: High, Sodium: 180mg, Vitamin C: 15% DV (per 15g serving)',
     rating: 4.8,
     stock: 90,
-    isOrganic: true
+    isOrganic: false
   }
 ];
 
@@ -309,10 +309,10 @@ async function main() {
     update: {
       fullName: 'Harpreet Singh',
       phone: '+91 98765 43210',
-      state: 'Punjab',
-      district: 'Ludhiana',
+      state: 'Rajasthan',
+      district: 'Sri Ganganagar',
       farmSizeAcres: 12.0,
-      primaryCrops: 'A2 Milk, Rice',
+      primaryCrops: 'A2 Milk, Cow Ghee, Butter',
       procurementModel: 'Co-operative Pooling',
       status: 'APPROVED',
       rating: 4.8,
@@ -321,15 +321,124 @@ async function main() {
       id: 'farmer_harpreet',
       fullName: 'Harpreet Singh',
       phone: '+91 98765 43210',
-      state: 'Punjab',
-      district: 'Ludhiana',
+      state: 'Rajasthan',
+      district: 'Sri Ganganagar',
       farmSizeAcres: 12.0,
-      primaryCrops: 'A2 Milk, Rice',
+      primaryCrops: 'A2 Milk, Cow Ghee, Butter',
       procurementModel: 'Co-operative Pooling',
       status: 'APPROVED',
       rating: 4.8,
     }
   });
+
+  const farmerRajendra = await prisma.farmer.upsert({
+    where: { id: 'farmer_rajendra' },
+    update: {
+      fullName: 'Rajendra Prasad',
+      phone: '+91 94140 98765',
+      state: 'Rajasthan',
+      district: 'Jodhpur',
+      farmSizeAcres: 8.5,
+      primaryCrops: 'Aloe Vera, Sesame Seeds',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.7,
+    },
+    create: {
+      id: 'farmer_rajendra',
+      fullName: 'Rajendra Prasad',
+      phone: '+91 94140 98765',
+      state: 'Rajasthan',
+      district: 'Jodhpur',
+      farmSizeAcres: 8.5,
+      primaryCrops: 'Aloe Vera, Sesame Seeds',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.7,
+    }
+  });
+
+  const farmerSita = await prisma.farmer.upsert({
+    where: { id: 'farmer_sita' },
+    update: {
+      fullName: 'Sita Devi',
+      phone: '+91 96101 23456',
+      state: 'Rajasthan',
+      district: 'Udaipur',
+      farmSizeAcres: 4.2,
+      primaryCrops: 'Mangoes, Green Chillies, Garlic',
+      procurementModel: 'Daily Spot Market',
+      status: 'APPROVED',
+      rating: 4.9,
+    },
+    create: {
+      id: 'farmer_sita',
+      fullName: 'Sita Devi',
+      phone: '+91 96101 23456',
+      state: 'Rajasthan',
+      district: 'Udaipur',
+      farmSizeAcres: 4.2,
+      primaryCrops: 'Mangoes, Green Chillies, Garlic',
+      procurementModel: 'Daily Spot Market',
+      status: 'APPROVED',
+      rating: 4.9,
+    }
+  });
+
+  const farmerVijay = await prisma.farmer.upsert({
+    where: { id: 'farmer_vijay' },
+    update: {
+      fullName: 'Vijay Singh',
+      phone: '+91 98290 65432',
+      state: 'Rajasthan',
+      district: 'Bikaner',
+      farmSizeAcres: 10.0,
+      primaryCrops: 'Turmeric, Kashmiri Chilli',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.6,
+    },
+    create: {
+      id: 'farmer_vijay',
+      fullName: 'Vijay Singh',
+      phone: '+91 98290 65432',
+      state: 'Rajasthan',
+      district: 'Bikaner',
+      farmSizeAcres: 10.0,
+      primaryCrops: 'Turmeric, Kashmiri Chilli',
+      procurementModel: 'Contract Farming',
+      status: 'APPROVED',
+      rating: 4.6,
+    }
+  });
+
+  const farmerMahendra = await prisma.farmer.upsert({
+    where: { id: 'farmer_mahendra' },
+    update: {
+      fullName: 'Mahendra Jakhar',
+      phone: '+91 99820 12345',
+      state: 'Rajasthan',
+      district: 'Jaipur',
+      farmSizeAcres: 6.8,
+      primaryCrops: 'A2 Gir Ghee, Buffalo Ghee, Chana Dal',
+      procurementModel: 'Co-operative Pooling',
+      status: 'APPROVED',
+      rating: 4.8,
+    },
+    create: {
+      id: 'farmer_mahendra',
+      fullName: 'Mahendra Jakhar',
+      phone: '+91 99820 12345',
+      state: 'Rajasthan',
+      district: 'Jaipur',
+      farmSizeAcres: 6.8,
+      primaryCrops: 'A2 Gir Ghee, Buffalo Ghee, Chana Dal',
+      procurementModel: 'Co-operative Pooling',
+      status: 'APPROVED',
+      rating: 4.8,
+    }
+  });
+
   console.log('Farmers upserted with ratings successfully.');
 
   // Link products to farmers
@@ -339,9 +448,30 @@ async function main() {
   });
 
   await prisma.product.updateMany({
-    where: { slug: { in: ['a2-gir-cow-milk', 'bilona-cow-ghee', 'vedic-gir-cow-a2-ghee', 'vedic-cultured-buffalo-ghee'] } },
+    where: { slug: { in: ['a2-gir-cow-milk', 'bilona-cow-ghee', 'a2-vedic-cultured-butter'] } },
     data: { farmerId: 'farmer_harpreet' }
   });
+
+  await prisma.product.updateMany({
+    where: { slug: { in: ['organic-aloe-juice', 'cold-pressed-sesame-oil'] } },
+    data: { farmerId: 'farmer_rajendra' }
+  });
+
+  await prisma.product.updateMany({
+    where: { slug: { in: ['spiced-mango-pickle', 'sundried-rajasthan-green-chillies', 'organic-garlic-powder'] } },
+    data: { farmerId: 'farmer_sita' }
+  });
+
+  await prisma.product.updateMany({
+    where: { slug: { in: ['stone-ground-organic-turmeric', 'stone-ground-kashmiri-chilli'] } },
+    data: { farmerId: 'farmer_vijay' }
+  });
+
+  await prisma.product.updateMany({
+    where: { slug: { in: ['vedic-gir-cow-a2-ghee', 'vedic-cultured-buffalo-ghee', 'stone-ground-chana-dal'] } },
+    data: { farmerId: 'farmer_mahendra' }
+  });
+
   console.log('Products linked to growers successfully.');
 
   const partnersCount = await prisma.partner.count();

@@ -362,14 +362,23 @@ export default function ProductDetailClient({ product, relatedProducts }: Produc
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.stock <= 0}
-                  className="flex-1 py-3.5 bg-primary text-white font-league font-bold tracking-widest text-sm uppercase rounded-xl hover:bg-primary-light transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  Add to Basket
-                </button>
+                {product.isOrganic ? (
+                  <button
+                    disabled
+                    className="flex-1 py-3.5 bg-gray-100 text-gray-400 font-league font-bold tracking-widest text-sm uppercase rounded-xl border border-gray-200 transition-all flex items-center justify-center gap-2 shadow-xs cursor-not-allowed"
+                  >
+                    Coming Soon (Harvesting)
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.stock <= 0}
+                    className="flex-1 py-3.5 bg-primary text-white font-league font-bold tracking-widest text-sm uppercase rounded-xl hover:bg-primary-light transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Add to Basket
+                  </button>
+                )}
                 <button
                   onClick={() => toggleWishlist(product.id)}
                   className="py-3.5 px-4 border border-gray-200 hover:text-red-500 text-gray-500 rounded-xl hover:bg-white hover:border-red-100 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
