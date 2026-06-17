@@ -826,3 +826,228 @@ export async function deleteInvestor(id: string) {
   }
 }
 
+// ==========================================
+// 9. MULTI-ROLE DASHBOARD ACTIONS
+// ==========================================
+
+export async function getUserDashboardRoles(userId: string) {
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      include: {
+        farmer: {
+          include: {
+            products: true,
+          },
+        },
+        partner: true,
+        investorLead: true,
+      },
+    });
+    if (!user) {
+      return { success: false, error: 'User not found' };
+    }
+    return {
+      success: true,
+      roles: {
+        farmer: user.farmer ? JSON.parse(JSON.stringify(user.farmer)) : null,
+        partner: user.partner ? JSON.parse(JSON.stringify(user.partner)) : null,
+        investorLead: user.investorLead ? JSON.parse(JSON.stringify(user.investorLead)) : null,
+      },
+    };
+  } catch (error: any) {
+    console.error('Error fetching user dashboard roles:', error);
+    return { success: false, error: error.message || 'Failed to fetch roles.' };
+  }
+}
+
+export async function requestFarmerRole(userId: string, data: {
+  fullName: string;
+  phone: string;
+  state: string;
+  district: string;
+  farmSizeAcres: number;
+  primaryCrops: string;
+  procurementModel: string;
+}) {
+  try {
+    if (data.state !== 'Rajasthan') {
+      throw new Error("Farmer program registration is currently restricted to Rajasthan only.");
+    }
+    const existingFarmer = await db.farmer.findFirst({
+      where: { userId },
+    });
+    if (existingFarmer) {
+      throw new Error("You have already submitted a farmer application.");
+    }
+
+    const farmer = await db.farmer.create({
+      data: {
+        fullName: data.fullName,
+        phone: data.phone,
+        state: data.state,
+        district: data.district,
+        farmSizeAcres: Number(data.farmSizeAcres),
+        primaryCrops: data.primaryCrops,
+        procurementModel: data.procurementModel,
+        status: 'PENDING',
+        userId: userId,
+      },
+    });
+    revalidatePath('/account');
+    revalidatePath('/admin');
+
+    // Dispatch email notification asynchronously
+    sendMail({
+      subject: `New Farmer Registration: ${data.fullName} (${data.district})`,
+      html: getFarmerEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch farmer registration email:', err));
+
+    return { success: true, farmerId: farmer.id };
+  } catch (error: any) {
+    console.error('Error requesting farmer role:', error);
+    return { success: false, error: error.message || 'Failed to submit request.' };
+  }
+}
+
+export async function requestPartnerRole(userId: string, data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  tier: PartnerTier;
+  experienceYears: number;
+  investmentBudget: number;
+}) {
+  try {
+    const existingPartner = await db.partner.findFirst({
+      where: { userId },
+    });
+    if (existingPartner) {
+      throw new Error("You have already submitted a partner application.");
+    }
+
+    const partner = await db.partner.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        companyName: data.companyName || null,
+        tier: data.tier,
+        experienceYears: Number(data.experienceYears),
+        investmentBudget: Number(data.investmentBudget),
+        status: 'PENDING',
+        userId: userId,
+      },
+    });
+    revalidatePath('/account');
+    revalidatePath('/admin');
+
+    sendMail({
+      subject: `New Franchise Partner Request: ${data.fullName} (${data.tier})`,
+      html: getPartnerEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch partner email:', err));
+
+    return { success: true, partnerId: partner.id };
+  } catch (error: any) {
+    console.error('Error requesting partner role:', error);
+    return { success: false, error: error.message || 'Failed to submit request.' };
+  }
+}
+
+export async function requestInvestorRole(userId: string, data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  investmentRange: string;
+  accreditedStatus: boolean;
+  message?: string;
+}) {
+  try {
+    const existingInvestor = await db.investorLead.findFirst({
+      where: { userId },
+    });
+    if (existingInvestor) {
+      throw new Error("You have already submitted an investor application.");
+    }
+
+    const lead = await db.investorLead.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        investmentRange: data.investmentRange,
+        accreditedStatus: data.accreditedStatus,
+        message: data.message || null,
+        status: 'NEW',
+        userId: userId,
+      },
+    });
+    revalidatePath('/account');
+    revalidatePath('/admin');
+
+    sendMail({
+      subject: `New Investor Lead: ${data.fullName} (${data.investmentRange})`,
+      html: getInvestorEmailTemplate(data),
+    }).catch(err => console.error('Failed to dispatch investor email:', err));
+
+    return { success: true, leadId: lead.id };
+  } catch (error: any) {
+    console.error('Error requesting investor role:', error);
+    return { success: false, error: error.message || 'Failed to submit request.' };
+  }
+}
+
+export async function updateFarmerProductInventory(productId: string, price: number, stock: number) {
+  try {
+    const updated = await db.product.update({
+      where: { id: productId },
+      data: {
+        price: Number(price),
+        stock: Math.round(Number(stock)),
+      },
+    });
+    revalidatePath('/products');
+    revalidatePath('/admin');
+    revalidatePath('/account');
+    return { success: true, product: JSON.parse(JSON.stringify(updated)) };
+  } catch (error: any) {
+    console.error('Error updating farmer inventory:', error);
+    return { success: false, error: error.message || 'Failed to update inventory.' };
+  }
+}
+
+export async function submitDashboardFeedback(data: {
+  name: string;
+  email: string;
+  message: string;
+  type: string;
+}) {
+  try {
+    const msg = await db.contactMessage.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        subject: `Dashboard Support/Feedback (${data.type})`,
+        message: data.message,
+        status: 'UNREAD',
+      },
+    });
+
+    sendMail({
+      subject: `Dashboard Support/Feedback (${data.type}) from ${data.name}`,
+      html: `<p><strong>Name:</strong> ${data.name}</p>
+             <p><strong>Email:</strong> ${data.email}</p>
+             <p><strong>Type:</strong> ${data.type}</p>
+             <p><strong>Message:</strong></p>
+             <p>${data.message.replace(/\\n/g, '<br/>')}</p>`,
+    }).catch(err => console.error('Failed to dispatch support feedback email:', err));
+
+    return { success: true, messageId: msg.id };
+  } catch (error: any) {
+    console.error('Error submitting dashboard feedback:', error);
+    return { success: false, error: error.message || 'Failed to submit feedback.' };
+  }
+}
+
+

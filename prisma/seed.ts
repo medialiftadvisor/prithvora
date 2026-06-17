@@ -256,6 +256,74 @@ async function main() {
   });
   console.log(`Admin user created/verified: ${admin.email}`);
 
+  // Create test farmer user
+  const farmerUserEmail = 'farmer@prithvora.com';
+  const farmerUser = await prisma.user.upsert({
+    where: { email: farmerUserEmail },
+    update: {},
+    create: {
+      email: farmerUserEmail,
+      name: 'Ramesh Kumar (Farmer)',
+      password: 'farmer123',
+      role: 'USER',
+      phone: '+91 96606 86394',
+      state: 'Rajasthan',
+      city: 'Alwar',
+    },
+  });
+  console.log(`Farmer user created: ${farmerUser.email}`);
+
+  // Create test partner user
+  const partnerUserEmail = 'partner@prithvora.com';
+  const partnerUser = await prisma.user.upsert({
+    where: { email: partnerUserEmail },
+    update: {},
+    create: {
+      email: partnerUserEmail,
+      name: 'Sunil Gupta (Partner)',
+      password: 'partner123',
+      role: 'USER',
+      phone: '+91 94140 12345',
+      state: 'Rajasthan',
+      city: 'Jaipur',
+    },
+  });
+  console.log(`Partner user created: ${partnerUser.email}`);
+
+  // Create test investor user
+  const investorUserEmail = 'investor@prithvora.com';
+  const investorUser = await prisma.user.upsert({
+    where: { email: investorUserEmail },
+    update: {},
+    create: {
+      email: investorUserEmail,
+      name: 'Rajiv Malhotra (Investor)',
+      password: 'investor123',
+      role: 'USER',
+      phone: '+91 99887 76655',
+    },
+  });
+  console.log(`Investor user created: ${investorUser.email}`);
+
+  // Create test customer user
+  const customerUserEmail = 'customer@prithvora.com';
+  const customerUser = await prisma.user.upsert({
+    where: { email: customerUserEmail },
+    update: {},
+    create: {
+      email: customerUserEmail,
+      name: 'Test Customer',
+      password: 'customer123',
+      role: 'USER',
+      phone: '+91 98888 88888',
+      address: '123, Green Street, Scheme 10',
+      city: 'Jaipur',
+      state: 'Rajasthan',
+      zip: '302001',
+    },
+  });
+  console.log(`Customer user created: ${customerUser.email}`);
+
   // Create default products
   for (const prod of PRODUCTS) {
     await prisma.product.upsert({
@@ -289,6 +357,7 @@ async function main() {
       procurementModel: 'Contract Farming',
       status: 'APPROVED',
       rating: 4.9,
+      userId: farmerUser.id,
     },
     create: {
       id: 'farmer_ramesh',
@@ -301,6 +370,7 @@ async function main() {
       procurementModel: 'Contract Farming',
       status: 'APPROVED',
       rating: 4.9,
+      userId: farmerUser.id,
     }
   });
 
@@ -474,61 +544,111 @@ async function main() {
 
   console.log('Products linked to growers successfully.');
 
-  const partnersCount = await prisma.partner.count();
-  if (partnersCount === 0) {
-    await prisma.partner.createMany({
-      data: [
-        {
-          fullName: 'Sunil Gupta',
-          email: 'sunil@guptalogistics.com',
-          phone: '+91 94140 12345',
-          companyName: 'Gupta Cold Logistics',
-          tier: 'GOLD',
-          experienceYears: 4,
-          investmentBudget: 1500000,
-          status: 'APPROVED',
-        },
-        {
-          fullName: 'Aman Deep',
-          email: 'aman@deeporganic.com',
-          phone: '+91 98140 54321',
-          companyName: 'Deep Organic Clusters',
-          tier: 'PLATINUM',
-          experienceYears: 7,
-          investmentBudget: 4000000,
-          status: 'PENDING',
-        }
-      ]
-    });
-    console.log('Partners seeded.');
-  }
+  // Create / Upsert partner Sunil Gupta linked to partnerUser
+  const partnerSunil = await prisma.partner.upsert({
+    where: { id: 'partner_sunil' },
+    update: {
+      fullName: 'Sunil Gupta',
+      email: 'sunil@guptalogistics.com',
+      phone: '+91 94140 12345',
+      companyName: 'Gupta Cold Logistics',
+      tier: 'GOLD',
+      experienceYears: 4,
+      investmentBudget: 1500000,
+      status: 'APPROVED',
+      userId: partnerUser.id,
+    },
+    create: {
+      id: 'partner_sunil',
+      fullName: 'Sunil Gupta',
+      email: 'sunil@guptalogistics.com',
+      phone: '+91 94140 12345',
+      companyName: 'Gupta Cold Logistics',
+      tier: 'GOLD',
+      experienceYears: 4,
+      investmentBudget: 1500000,
+      status: 'APPROVED',
+      userId: partnerUser.id,
+    },
+  });
+  console.log('Seeded partner Sunil linked to user partner@prithvora.com');
 
-  const investorsCount = await prisma.investorLead.count();
-  if (investorsCount === 0) {
-    await prisma.investorLead.createMany({
-      data: [
-        {
-          fullName: 'Rajiv Malhotra',
-          email: 'rajiv@malhotracapital.com',
-          phone: '+91 99887 76655',
-          investmentRange: '$250k - $1M',
-          accreditedStatus: true,
-          message: 'Interested in Series A details and agritech expansion roadmap.',
-          status: 'NEW',
-        },
-        {
-          fullName: 'Sanjay Shah',
-          email: 'sanjay@angel.com',
-          phone: '+91 98877 66554',
-          investmentRange: '$50k - $250k',
-          accreditedStatus: true,
-          message: 'Would love to schedule a direct founder call.',
-          status: 'CONTACTED',
-        }
-      ]
-    });
-    console.log('Investor leads seeded.');
-  }
+  // Seed pending partner Aman Deep
+  await prisma.partner.upsert({
+    where: { id: 'partner_aman' },
+    update: {
+      fullName: 'Aman Deep',
+      email: 'aman@deeporganic.com',
+      phone: '+91 98140 54321',
+      companyName: 'Deep Organic Clusters',
+      tier: 'PLATINUM',
+      experienceYears: 7,
+      investmentBudget: 4000000,
+      status: 'PENDING',
+    },
+    create: {
+      id: 'partner_aman',
+      fullName: 'Aman Deep',
+      email: 'aman@deeporganic.com',
+      phone: '+91 98140 54321',
+      companyName: 'Deep Organic Clusters',
+      tier: 'PLATINUM',
+      experienceYears: 7,
+      investmentBudget: 4000000,
+      status: 'PENDING',
+    },
+  });
+
+  // Create / Upsert investor Rajiv Malhotra linked to investorUser
+  const investorRajiv = await prisma.investorLead.upsert({
+    where: { id: 'investor_rajiv' },
+    update: {
+      fullName: 'Rajiv Malhotra',
+      email: 'rajiv@malhotracapital.com',
+      phone: '+91 99887 76655',
+      investmentRange: '$200k+',
+      accreditedStatus: true,
+      message: 'Interested in Series A details and agritech expansion roadmap.',
+      status: 'QUALIFIED',
+      userId: investorUser.id,
+    },
+    create: {
+      id: 'investor_rajiv',
+      fullName: 'Rajiv Malhotra',
+      email: 'rajiv@malhotracapital.com',
+      phone: '+91 99887 76655',
+      investmentRange: '$200k+',
+      accreditedStatus: true,
+      message: 'Interested in Series A details and agritech expansion roadmap.',
+      status: 'QUALIFIED',
+      userId: investorUser.id,
+    },
+  });
+  console.log('Seeded investor Rajiv linked to user investor@prithvora.com');
+
+  // Seed pending investor Sanjay Shah
+  await prisma.investorLead.upsert({
+    where: { id: 'investor_sanjay' },
+    update: {
+      fullName: 'Sanjay Shah',
+      email: 'sanjay@angel.com',
+      phone: '+91 98877 66554',
+      investmentRange: '$50k-$200k',
+      accreditedStatus: true,
+      message: 'Would love to schedule a direct founder call.',
+      status: 'NEW',
+    },
+    create: {
+      id: 'investor_sanjay',
+      fullName: 'Sanjay Shah',
+      email: 'sanjay@angel.com',
+      phone: '+91 98877 66554',
+      investmentRange: '$50k-$200k',
+      accreditedStatus: true,
+      message: 'Would love to schedule a direct founder call.',
+      status: 'NEW',
+    },
+  });
 
   const applicationsCount = await prisma.employeeApplication.count();
   if (applicationsCount === 0) {

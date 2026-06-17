@@ -29,21 +29,24 @@ enum PartnerTier {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String        @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          Role      @default(USER)
+  role          Role          @default(USER)
   phone         String?
-  address       String?   @db.Text
+  address       String?       @db.Text
   city          String?
   state         String?
   zip           String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   orders        Order[]
+  farmer        Farmer?
+  partner       Partner?
+  investorLead  InvestorLead?
 }
 
 model Product {
@@ -107,6 +110,8 @@ model Farmer {
   status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
   rating           Float     @default(5.0)
   products         Product[]
+  userId           String?   @unique
+  user             User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt        DateTime  @default(now())
 }
 
@@ -120,6 +125,8 @@ model Partner {
   experienceYears  Int
   investmentBudget Float
   status           String      @default("PENDING") // PENDING, APPROVED, REJECTED
+  userId           String?     @unique
+  user             User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt        DateTime    @default(now())
 }
 
@@ -132,6 +139,8 @@ model InvestorLead {
   accreditedStatus Boolean  @default(false)
   message          String?  @db.Text
   status           String   @default("NEW") // NEW, CONTACTED, QUALIFIED, ARCHIVED
+  userId           String?  @unique
+  user             User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt        DateTime @default(now())
 }
 
