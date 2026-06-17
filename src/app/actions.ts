@@ -1149,4 +1149,235 @@ export async function submitDashboardFeedback(data: {
   }
 }
 
+// ==========================================
+// 11. EXTRA ADMIN MANAGEMENT ACTIONS
+// ==========================================
+
+export async function addFarmer(data: {
+  fullName: string;
+  phone: string;
+  state: string;
+  district: string;
+  farmSizeAcres: number;
+  primaryCrops: string;
+  procurementModel: string;
+  status?: string;
+  rating?: number;
+  userEmail?: string;
+}) {
+  try {
+    let userId: string | null = null;
+    if (data.userEmail) {
+      const u = await db.user.findFirst({
+        where: { email: data.userEmail.toLowerCase() },
+      });
+      if (u) userId = u.id;
+    }
+    const farmer = await db.farmer.create({
+      data: {
+        fullName: data.fullName,
+        phone: data.phone,
+        state: data.state,
+        district: data.district,
+        farmSizeAcres: Number(data.farmSizeAcres),
+        primaryCrops: data.primaryCrops,
+        procurementModel: data.procurementModel,
+        status: data.status || 'PENDING',
+        rating: data.rating !== undefined ? Number(data.rating) : 5.0,
+        userId: userId,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, farmerId: farmer.id };
+  } catch (error: any) {
+    console.error('Error adding farmer:', error);
+    return { success: false, error: error.message || 'Failed to add grower.' };
+  }
+}
+
+export async function addPartner(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  tier: PartnerTier;
+  experienceYears: number;
+  investmentBudget: number;
+  status?: string;
+  userEmail?: string;
+}) {
+  try {
+    let userId: string | null = null;
+    if (data.userEmail) {
+      const u = await db.user.findFirst({
+        where: { email: data.userEmail.toLowerCase() },
+      });
+      if (u) userId = u.id;
+    }
+    const partner = await db.partner.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email.toLowerCase(),
+        phone: data.phone,
+        companyName: data.companyName || null,
+        tier: data.tier,
+        experienceYears: Number(data.experienceYears),
+        investmentBudget: Number(data.investmentBudget),
+        status: data.status || 'PENDING',
+        userId: userId,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, partnerId: partner.id };
+  } catch (error: any) {
+    console.error('Error adding partner:', error);
+    return { success: false, error: error.message || 'Failed to add partner.' };
+  }
+}
+
+export async function updatePartner(id: string, data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  companyName?: string;
+  tier: PartnerTier;
+  experienceYears: number;
+  investmentBudget: number;
+  status: string;
+  userEmail?: string;
+}) {
+  try {
+    let userId: string | null = null;
+    if (data.userEmail) {
+      const u = await db.user.findFirst({
+        where: { email: data.userEmail.toLowerCase() },
+      });
+      if (u) userId = u.id;
+    }
+    const partner = await db.partner.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        email: data.email.toLowerCase(),
+        phone: data.phone,
+        companyName: data.companyName || null,
+        tier: data.tier,
+        experienceYears: Number(data.experienceYears),
+        investmentBudget: Number(data.investmentBudget),
+        status: data.status,
+        userId: userId,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, partner: JSON.parse(JSON.stringify(partner)) };
+  } catch (error: any) {
+    console.error('Error updating partner:', error);
+    return { success: false, error: error.message || 'Failed to update partner.' };
+  }
+}
+
+export async function addInvestor(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  investmentRange: string;
+  accreditedStatus: boolean;
+  message?: string;
+  status?: string;
+  userEmail?: string;
+}) {
+  try {
+    let userId: string | null = null;
+    if (data.userEmail) {
+      const u = await db.user.findFirst({
+        where: { email: data.userEmail.toLowerCase() },
+      });
+      if (u) userId = u.id;
+    }
+    const investor = await db.investorLead.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email.toLowerCase(),
+        phone: data.phone,
+        investmentRange: data.investmentRange,
+        accreditedStatus: data.accreditedStatus,
+        message: data.message || null,
+        status: data.status || 'NEW',
+        userId: userId,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, investorId: investor.id };
+  } catch (error: any) {
+    console.error('Error adding investor:', error);
+    return { success: false, error: error.message || 'Failed to add investor.' };
+  }
+}
+
+export async function updateInvestor(id: string, data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  investmentRange: string;
+  accreditedStatus: boolean;
+  message?: string;
+  status: string;
+  userEmail?: string;
+}) {
+  try {
+    let userId: string | null = null;
+    if (data.userEmail) {
+      const u = await db.user.findFirst({
+        where: { email: data.userEmail.toLowerCase() },
+      });
+      if (u) userId = u.id;
+    }
+    const investor = await db.investorLead.update({
+      where: { id },
+      data: {
+        fullName: data.fullName,
+        email: data.email.toLowerCase(),
+        phone: data.phone,
+        investmentRange: data.investmentRange,
+        accreditedStatus: data.accreditedStatus,
+        message: data.message || null,
+        status: data.status,
+        userId: userId,
+      },
+    });
+    revalidatePath('/admin');
+    return { success: true, investor: JSON.parse(JSON.stringify(investor)) };
+  } catch (error: any) {
+    console.error('Error updating investor:', error);
+    return { success: false, error: error.message || 'Failed to update investor.' };
+  }
+}
+
+export async function deleteContactMessage(id: string) {
+  try {
+    await db.contactMessage.delete({
+      where: { id },
+    });
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting contact message:', error);
+    return { success: false, error: error.message || 'Failed to delete support ticket.' };
+  }
+}
+
+export async function updateContactMessageStatus(id: string, status: string) {
+  try {
+    const msg = await db.contactMessage.update({
+      where: { id },
+      data: { status },
+    });
+    revalidatePath('/admin');
+    return { success: true, message: JSON.parse(JSON.stringify(msg)) };
+  } catch (error: any) {
+    console.error('Error updating contact message status:', error);
+    return { success: false, error: error.message || 'Failed to update ticket status.' };
+  }
+}
+
 

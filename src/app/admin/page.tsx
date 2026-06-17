@@ -9,11 +9,12 @@ import {
 import { 
   getProducts, addProduct, deleteProduct, updateProduct,
   getOrders, updateOrderStatus, 
-  getFarmers, approveFarmer, updateFarmer, deleteFarmer,
-  getPartners, approvePartner, deletePartner,
-  getInvestors, contactInvestor, deleteInvestor,
+  getFarmers, approveFarmer, updateFarmer, deleteFarmer, addFarmer,
+  getPartners, approvePartner, deletePartner, addPartner, updatePartner,
+  getInvestors, contactInvestor, deleteInvestor, addInvestor, updateInvestor,
   getCareersApplications,
-  getCustomers, updateCustomer, deleteCustomer
+  getCustomers, updateCustomer, deleteCustomer,
+  getContactMessages, deleteContactMessage, updateContactMessageStatus
 } from '@/app/actions';
 import { OrderStatus } from '@prisma/client';
 
@@ -29,6 +30,7 @@ export default function AdminPanel() {
   const [partners, setPartners] = useState<any[]>([]);
   const [investors, setInvestors] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [newProduct, setNewProduct] = useState({
@@ -48,12 +50,58 @@ export default function AdminPanel() {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [editingCustomer, setEditingCustomer] = useState<any>(null);
   const [editingFarmer, setEditingFarmer] = useState<any>(null);
+  const [editingPartner, setEditingPartner] = useState<any>(null);
+  const [editingInvestor, setEditingInvestor] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
   const [isEditCustomerModalOpen, setIsEditCustomerModalOpen] = useState(false);
   const [isEditFarmerModalOpen, setIsEditFarmerModalOpen] = useState(false);
+  const [isEditPartnerModalOpen, setIsEditPartnerModalOpen] = useState(false);
+  const [isEditInvestorModalOpen, setIsEditInvestorModalOpen] = useState(false);
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+
+  const [isAddFarmerModalOpen, setIsAddFarmerModalOpen] = useState(false);
+  const [isAddPartnerModalOpen, setIsAddPartnerModalOpen] = useState(false);
+  const [isAddInvestorModalOpen, setIsAddInvestorModalOpen] = useState(false);
+
+  const [newFarmer, setNewFarmer] = useState({
+    name: '',
+    phone: '',
+    state: 'Rajasthan',
+    district: '',
+    farmSize: 1.0,
+    crops: '',
+    procurement: 'Contract Farming',
+    status: 'PENDING',
+    rating: 5.0,
+    userEmail: ''
+  });
+
+  const [newPartner, setNewPartner] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    tier: 'SILVER',
+    experience: 1,
+    budget: 100000,
+    status: 'PENDING',
+    userEmail: ''
+  });
+
+  const [newInvestor, setNewInvestor] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    range: '$10k-$50k',
+    accredited: true,
+    message: '',
+    status: 'NEW',
+    userEmail: ''
+  });
 
   // Route protection
   // In our NextAuth setup, users with "admin" in their email are automatically marked as role = ADMIN.
@@ -63,17 +111,19 @@ export default function AdminPanel() {
   const refreshData = async () => {
     setIsLoading(true);
     try {
-      const [prods, ords, farms, parts, invs, apps, custs] = await Promise.all([
+      const [prods, ords, farms, parts, invs, apps, custs, tix] = await Promise.all([
         getProducts(),
         getOrders(),
         getFarmers(),
         getPartners(),
         getInvestors(),
         getCareersApplications(),
-        getCustomers()
+        getCustomers(),
+        getContactMessages()
       ]);
       setProducts(prods);
       setCustomers(custs);
+      setTickets(tix || []);
       
       // Map database orders back to the flat format the table expects
       const mappedOrders = ords.map((o: any) => {
@@ -108,7 +158,8 @@ export default function AdminPanel() {
         crops: f.primaryCrops,
         procurement: f.procurementModel,
         rating: f.rating,
-        status: f.status
+        status: f.status,
+        userEmail: f.user?.email || ''
       }));
       setFarmers(mappedFarmers);
 
@@ -123,7 +174,8 @@ export default function AdminPanel() {
         experience: p.experienceYears,
         budget: p.investmentBudget,
         status: p.status,
-        date: new Date(p.createdAt).toLocaleDateString()
+        date: new Date(p.createdAt).toLocaleDateString(),
+        userEmail: p.user?.email || ''
       }));
       setPartners(mappedPartners);
 
@@ -137,7 +189,8 @@ export default function AdminPanel() {
         accredited: i.accreditedStatus,
         message: i.message || 'N/A',
         status: i.status,
-        date: new Date(i.createdAt).toLocaleDateString()
+        date: new Date(i.createdAt).toLocaleDateString(),
+        userEmail: i.user?.email || ''
       }));
       setInvestors(mappedInvestors);
 
@@ -302,6 +355,122 @@ export default function AdminPanel() {
     }
   };
 
+  const handleAddFarmer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await addFarmer({
+      fullName: newFarmer.name,
+      phone: newFarmer.phone,
+      state: newFarmer.state,
+      district: newFarmer.district,
+      farmSizeAcres: Number(newFarmer.farmSize),
+      primaryCrops: newFarmer.crops,
+      procurementModel: newFarmer.procurement,
+      status: newFarmer.status,
+      rating: Number(newFarmer.rating),
+      userEmail: newFarmer.userEmail || undefined
+    });
+    if (res.success) {
+      setIsAddFarmerModalOpen(false);
+      setNewFarmer({
+        name: '',
+        phone: '',
+        state: 'Rajasthan',
+        district: '',
+        farmSize: 1.0,
+        crops: '',
+        procurement: 'Contract Farming',
+        status: 'PENDING',
+        rating: 5.0,
+        userEmail: ''
+      });
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to add grower');
+    }
+  };
+
+  const handleAddPartner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await addPartner({
+      fullName: newPartner.name,
+      email: newPartner.email,
+      phone: newPartner.phone,
+      companyName: newPartner.company || undefined,
+      tier: newPartner.tier as any,
+      experienceYears: Number(newPartner.experience),
+      investmentBudget: Number(newPartner.budget),
+      status: newPartner.status,
+      userEmail: newPartner.userEmail || undefined
+    });
+    if (res.success) {
+      setIsAddPartnerModalOpen(false);
+      setNewPartner({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        tier: 'SILVER',
+        experience: 1,
+        budget: 100000,
+        status: 'PENDING',
+        userEmail: ''
+      });
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to add partner');
+    }
+  };
+
+  const handleAddInvestor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = await addInvestor({
+      fullName: newInvestor.name,
+      email: newInvestor.email,
+      phone: newInvestor.phone,
+      investmentRange: newInvestor.range,
+      accreditedStatus: newInvestor.accredited,
+      message: newInvestor.message || undefined,
+      status: newInvestor.status,
+      userEmail: newInvestor.userEmail || undefined
+    });
+    if (res.success) {
+      setIsAddInvestorModalOpen(false);
+      setNewInvestor({
+        name: '',
+        email: '',
+        phone: '',
+        range: '$10k-$50k',
+        accredited: true,
+        message: '',
+        status: 'NEW',
+        userEmail: ''
+      });
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to add investor');
+    }
+  };
+
+  const handleDeleteTicket = async (id: string) => {
+    if (confirm('Are you sure you want to delete this support message?')) {
+      const res = await deleteContactMessage(id);
+      if (res.success) {
+        refreshData();
+      } else {
+        alert(res.error || 'Failed to delete support ticket');
+      }
+    }
+  };
+
+  const handleUpdateTicketStatus = async (id: string, newStatus: string) => {
+    const res = await updateContactMessageStatus(id, newStatus);
+    if (res.success) {
+      refreshData();
+    } else {
+      alert(res.error || 'Failed to update ticket status');
+    }
+  };
+
   const sidebarLinks = [
     { key: 'dashboard', label: 'Analytics', icon: LayoutDashboard },
     { key: 'products', label: 'Products', icon: ShoppingBag },
@@ -311,6 +480,7 @@ export default function AdminPanel() {
     { key: 'partners', label: 'Partners', icon: Handshake },
     { key: 'investors', label: 'Investors', icon: LineChart },
     { key: 'careers', label: 'Careers', icon: Briefcase },
+    { key: 'tickets', label: 'Tickets', icon: Mail },
   ];
 
   return (
@@ -686,7 +856,16 @@ export default function AdminPanel() {
         {/* Tab 4: Farmer leads */}
         {activeTab === 'farmers' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-league font-black text-spruce">Grower Management</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-league font-black text-spruce">Grower Management</h2>
+              <button
+                onClick={() => setIsAddFarmerModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-league font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-primary-light transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Add Grower
+              </button>
+            </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
@@ -766,7 +945,16 @@ export default function AdminPanel() {
         {/* Tab 5: Partners */}
         {activeTab === 'partners' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-league font-black text-spruce">Partnership Applications</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-league font-black text-spruce">Partnership Applications</h2>
+              <button
+                onClick={() => setIsAddPartnerModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-league font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-primary-light transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Add Partner
+              </button>
+            </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
@@ -815,6 +1003,16 @@ export default function AdminPanel() {
                           </button>
                         )}
                         <button
+                          onClick={() => {
+                            setEditingPartner(p);
+                            setIsEditPartnerModalOpen(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-primary inline-flex items-center cursor-pointer"
+                          title="Edit Partner"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleDeletePartner(p.id)}
                           className="p-1 text-gray-400 hover:text-red-500 inline-flex items-center cursor-pointer"
                           title="Delete Partner"
@@ -833,7 +1031,16 @@ export default function AdminPanel() {
         {/* Tab 6: Investor leads */}
         {activeTab === 'investors' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-league font-black text-spruce">Investor Leads Inquiries</h2>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-league font-black text-spruce">Investor Leads Inquiries</h2>
+              <button
+                onClick={() => setIsAddInvestorModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-league font-bold text-xs tracking-wider uppercase rounded-xl hover:bg-primary-light transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Add Investor
+              </button>
+            </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
               <table className="w-full text-left text-xs border-collapse">
@@ -867,7 +1074,9 @@ export default function AdminPanel() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          i.status === 'CONTACTED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          i.status === 'CONTACTED' ? 'bg-green-100 text-green-700' :
+                          i.status === 'QUALIFIED' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
                         }`}>
                           {i.status}
                         </span>
@@ -881,6 +1090,16 @@ export default function AdminPanel() {
                             Contact
                           </button>
                         )}
+                        <button
+                          onClick={() => {
+                            setEditingInvestor(i);
+                            setIsEditInvestorModalOpen(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-primary inline-flex items-center cursor-pointer"
+                          title="Edit Investor"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDeleteInvestor(i.id)}
                           className="p-1 text-gray-400 hover:text-red-500 inline-flex items-center cursor-pointer"
@@ -982,6 +1201,83 @@ export default function AdminPanel() {
                           }}
                           className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer inline-flex items-center"
                           title="Delete Customer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 9: Support Tickets */}
+        {activeTab === 'tickets' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-league font-black text-spruce">Support Inquiries & Feedback</h2>
+            
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-400 font-bold uppercase tracking-wider">
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Sender / Contact</th>
+                    <th className="py-3 px-4">Subject</th>
+                    <th className="py-3 px-4">Message</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-gray-600 font-medium">
+                  {tickets.map((t) => (
+                    <tr key={t.id} className="hover:bg-offwhite/50">
+                      <td className="py-3 px-4 font-semibold text-spruce">{new Date(t.createdAt).toLocaleDateString()}</td>
+                      <td className="py-3 px-4">
+                        <span className="block font-semibold text-spruce">{t.name}</span>
+                        <span className="block text-[10px] text-gray-400">{t.email} {t.phone ? `| ${t.phone}` : ''}</span>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-spruce">{t.subject}</td>
+                      <td className="py-3 px-4 max-w-xs truncate" title={t.message}>
+                        {t.message}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          t.status === 'RESOLVED' ? 'bg-green-100 text-green-700' :
+                          t.status === 'READ' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedTicket(t);
+                            setIsTicketModalOpen(true);
+                            if (t.status === 'UNREAD') {
+                              handleUpdateTicketStatus(t.id, 'READ');
+                            }
+                          }}
+                          className="text-gray-400 hover:text-primary transition-colors mr-2 cursor-pointer inline-flex items-center"
+                          title="View Message"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {t.status !== 'RESOLVED' && (
+                          <button
+                            onClick={() => handleUpdateTicketStatus(t.id, 'RESOLVED')}
+                            className="p-1 text-primary hover:text-primary-light inline-flex items-center cursor-pointer"
+                            title="Mark as Resolved"
+                          >
+                            <Check className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteTicket(t.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer inline-flex items-center"
+                          title="Delete Ticket"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1556,6 +1852,756 @@ export default function AdminPanel() {
             >
               Close Details Desk
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Farmer Modal */}
+      {isAddFarmerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsAddFarmerModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Add New Grower</h3>
+              <button onClick={() => setIsAddFarmerModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddFarmer} className="space-y-4 text-xs font-semibold text-gray-500">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Grower Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.name}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.phone}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">District</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.district}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, district: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">State</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.state}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, state: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <label className="uppercase">Farm Size (Acres)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    required
+                    value={newFarmer.farmSize}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, farmSize: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Rating (0-5)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    required
+                    value={newFarmer.rating}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, rating: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={newFarmer.status}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="PENDING">PENDING</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Procurement Model</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.procurement}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, procurement: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Primary Crops</label>
+                  <input
+                    type="text"
+                    required
+                    value={newFarmer.crops}
+                    onChange={(e) => setNewFarmer({ ...newFarmer, crops: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Linked User Email (Optional)</label>
+                <input
+                  type="email"
+                  value={newFarmer.userEmail}
+                  onChange={(e) => setNewFarmer({ ...newFarmer, userEmail: e.target.value })}
+                  placeholder="e.g. user@prithvora.com"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Create Grower Profile
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Partner Modal */}
+      {isAddPartnerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsAddPartnerModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Add Franchise Partner</h3>
+              <button onClick={() => setIsAddPartnerModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddPartner} className="space-y-4 text-xs font-semibold text-gray-500">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Partner Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newPartner.name}
+                    onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={newPartner.phone}
+                    onChange={(e) => setNewPartner({ ...newPartner, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={newPartner.email}
+                    onChange={(e) => setNewPartner({ ...newPartner, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Company Name</label>
+                  <input
+                    type="text"
+                    value={newPartner.company}
+                    onChange={(e) => setNewPartner({ ...newPartner, company: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <label className="uppercase">Experience (Yrs)</label>
+                  <input
+                    type="number"
+                    required
+                    value={newPartner.experience}
+                    onChange={(e) => setNewPartner({ ...newPartner, experience: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Budget (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={newPartner.budget}
+                    onChange={(e) => setNewPartner({ ...newPartner, budget: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Tier</label>
+                  <select
+                    value={newPartner.tier}
+                    onChange={(e) => setNewPartner({ ...newPartner, tier: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="SILVER">SILVER</option>
+                    <option value="GOLD">GOLD</option>
+                    <option value="PLATINUM">PLATINUM</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={newPartner.status}
+                    onChange={(e) => setNewPartner({ ...newPartner, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="PENDING">PENDING</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Linked User Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={newPartner.userEmail}
+                    onChange={(e) => setNewPartner({ ...newPartner, userEmail: e.target.value })}
+                    placeholder="e.g. user@prithvora.com"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Create Partner Profile
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Partner Modal */}
+      {isEditPartnerModalOpen && editingPartner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditPartnerModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Partner Profile</h3>
+              <button onClick={() => setIsEditPartnerModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const res = await updatePartner(editingPartner.id, {
+                  fullName: editingPartner.name,
+                  email: editingPartner.email,
+                  phone: editingPartner.phone,
+                  companyName: editingPartner.company || undefined,
+                  tier: editingPartner.tier as any,
+                  experienceYears: Number(editingPartner.experience),
+                  investmentBudget: Number(editingPartner.budget),
+                  status: editingPartner.status,
+                  userEmail: editingPartner.userEmail || undefined
+                });
+                if (res.success) {
+                  setIsEditPartnerModalOpen(false);
+                  refreshData();
+                } else {
+                  alert(res.error || 'Failed to update partner');
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-500"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Partner Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingPartner.name || ''}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingPartner.phone || ''}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={editingPartner.email || ''}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Company Name</label>
+                  <input
+                    type="text"
+                    value={editingPartner.company || ''}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, company: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <label className="uppercase">Experience (Yrs)</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingPartner.experience || 0}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, experience: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Budget (₹)</label>
+                  <input
+                    type="number"
+                    required
+                    value={editingPartner.budget || 0}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, budget: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Tier</label>
+                  <select
+                    value={editingPartner.tier || 'SILVER'}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, tier: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="SILVER">SILVER</option>
+                    <option value="GOLD">GOLD</option>
+                    <option value="PLATINUM">PLATINUM</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={editingPartner.status || 'PENDING'}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="PENDING">PENDING</option>
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Linked User Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={editingPartner.userEmail || ''}
+                    onChange={(e) => setEditingPartner({ ...editingPartner, userEmail: e.target.value })}
+                    placeholder="e.g. user@prithvora.com"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Save Partner Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Investor Modal */}
+      {isAddInvestorModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsAddInvestorModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Add Investor Lead</h3>
+              <button onClick={() => setIsAddInvestorModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAddInvestor} className="space-y-4 text-xs font-semibold text-gray-500">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Investor Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newInvestor.name}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={newInvestor.phone}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={newInvestor.email}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Accredited Status</label>
+                  <select
+                    value={newInvestor.accredited ? 'true' : 'false'}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, accredited: e.target.value === 'true' })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="true">Accredited</option>
+                    <option value="false">Not Accredited</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Investment Range</label>
+                  <select
+                    value={newInvestor.range}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, range: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="$10k-$50k">$10k-$50k</option>
+                    <option value="$50k-$200k">$50k-$200k</option>
+                    <option value="$200k+">$200k+</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={newInvestor.status}
+                    onChange={(e) => setNewInvestor({ ...newInvestor, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="NEW">NEW</option>
+                    <option value="CONTACTED">CONTACTED</option>
+                    <option value="QUALIFIED">QUALIFIED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Linked User Email (Optional)</label>
+                <input
+                  type="email"
+                  value={newInvestor.userEmail}
+                  onChange={(e) => setNewInvestor({ ...newInvestor, userEmail: e.target.value })}
+                  placeholder="e.g. user@prithvora.com"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Inquiry Message</label>
+                <textarea
+                  value={newInvestor.message}
+                  onChange={(e) => setNewInvestor({ ...newInvestor, message: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary resize-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Create Investor Lead
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Investor Modal */}
+      {isEditInvestorModalOpen && editingInvestor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsEditInvestorModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in max-h-[95vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Edit Investor Lead</h3>
+              <button onClick={() => setIsEditInvestorModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const res = await updateInvestor(editingInvestor.id, {
+                  fullName: editingInvestor.name,
+                  email: editingInvestor.email,
+                  phone: editingInvestor.phone,
+                  investmentRange: editingInvestor.range,
+                  accreditedStatus: editingInvestor.accredited,
+                  message: editingInvestor.message || undefined,
+                  status: editingInvestor.status,
+                  userEmail: editingInvestor.userEmail || undefined
+                });
+                if (res.success) {
+                  setIsEditInvestorModalOpen(false);
+                  refreshData();
+                } else {
+                  alert(res.error || 'Failed to update investor');
+                }
+              }}
+              className="space-y-4 text-xs font-semibold text-gray-500"
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Investor Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingInvestor.name || ''}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingInvestor.phone || ''}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={editingInvestor.email || ''}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Accredited Status</label>
+                  <select
+                    value={editingInvestor.accredited ? 'true' : 'false'}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, accredited: e.target.value === 'true' })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="true">Accredited</option>
+                    <option value="false">Not Accredited</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Investment Range</label>
+                  <select
+                    value={editingInvestor.range || '$10k-$50k'}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, range: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="$10k-$50k">$10k-$50k</option>
+                    <option value="$50k-$200k">$50k-$200k</option>
+                    <option value="$200k+">$200k+</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="uppercase">Status</label>
+                  <select
+                    value={editingInvestor.status || 'NEW'}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, status: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary bg-white"
+                  >
+                    <option value="NEW">NEW</option>
+                    <option value="CONTACTED">CONTACTED</option>
+                    <option value="QUALIFIED">QUALIFIED</option>
+                    <option value="REJECTED">REJECTED</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-1">
+                  <label className="uppercase">Linked User Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={editingInvestor.userEmail || ''}
+                    onChange={(e) => setEditingInvestor({ ...editingInvestor, userEmail: e.target.value })}
+                    placeholder="e.g. user@prithvora.com"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="uppercase">Inquiry Message</label>
+                <textarea
+                  value={editingInvestor.message || ''}
+                  onChange={(e) => setEditingInvestor({ ...editingInvestor, message: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-spruce font-medium focus:outline-none focus:border-primary resize-none"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-3 bg-primary text-white font-league font-bold text-sm tracking-widest uppercase rounded-lg hover:bg-primary-light transition-all cursor-pointer"
+              >
+                Save Investor Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Support Ticket Details Modal */}
+      {isTicketModalOpen && selectedTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs animate-fade-in" onClick={() => setIsTicketModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-lg w-full p-6 border border-gray-100 shadow-2xl z-10 space-y-4 animate-zoom-in">
+            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="font-league font-black text-xl text-spruce uppercase tracking-wider">Support Inquiry Ticket</h3>
+                <p className="text-[10px] text-gray-400 mt-0.5">Date Received: {new Date(selectedTicket.createdAt).toLocaleDateString()}</p>
+              </div>
+              <button onClick={() => setIsTicketModalOpen(false)} className="text-gray-400 hover:text-spruce cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-3 text-xs font-semibold text-gray-500">
+              <div className="grid grid-cols-2 gap-4 bg-offwhite p-3 rounded-xl border border-gray-100/50">
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Sender Name</span>
+                  <span className="text-spruce font-bold text-sm">{selectedTicket.name}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Email Address</span>
+                  <span className="text-spruce font-bold text-sm"><a href={`mailto:${selectedTicket.email}`} className="text-primary hover:underline">{selectedTicket.email}</a></span>
+                </div>
+                {selectedTicket.phone && (
+                  <div className="col-span-2 pt-1 border-t border-gray-200/50">
+                    <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Phone</span>
+                    <span className="text-spruce">{selectedTicket.phone}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Subject</span>
+                <span className="text-spruce font-bold text-sm">{selectedTicket.subject}</span>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-[9px] uppercase tracking-wider text-gray-400 block">Inquiry Content</span>
+                <div className="w-full bg-offwhite p-4 rounded-xl border border-gray-100/50 text-sm text-spruce font-medium leading-relaxed whitespace-pre-wrap max-h-48 overflow-y-auto">
+                  {selectedTicket.message}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1">
+                  <label className="text-[9px] uppercase tracking-wider text-gray-400 block">Ticket Status</label>
+                  <select
+                    value={selectedTicket.status}
+                    onChange={async (e) => {
+                      const nextStatus = e.target.value;
+                      const res = await updateContactMessageStatus(selectedTicket.id, nextStatus);
+                      if (res.success) {
+                        setSelectedTicket({ ...selectedTicket, status: nextStatus });
+                        refreshData();
+                      } else {
+                        alert(res.error || 'Failed to update ticket status');
+                      }
+                    }}
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-spruce bg-white focus:outline-none focus:border-primary cursor-pointer w-full"
+                  >
+                    <option value="UNREAD">UNREAD</option>
+                    <option value="READ">READ</option>
+                    <option value="RESOLVED">RESOLVED</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this ticket?')) {
+                        const res = await deleteContactMessage(selectedTicket.id);
+                        if (res.success) {
+                          setIsTicketModalOpen(false);
+                          refreshData();
+                        } else {
+                          alert(res.error || 'Failed to delete ticket');
+                        }
+                      }
+                    }}
+                    className="w-full py-2 bg-red-50 border border-red-200 text-red-600 font-league font-bold text-xs tracking-wider uppercase rounded-lg hover:bg-red-100 transition-all cursor-pointer flex items-center justify-center gap-1"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Ticket
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
