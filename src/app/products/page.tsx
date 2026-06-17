@@ -320,6 +320,7 @@ function ProductsContent() {
 
     const res = await createOrder({
       userId: (session?.user as any)?.id,
+      userEmail: session?.user?.email || undefined,
       shippingAddress: fullAddress,
       discountApplied: 0, // In a future step, can integrate coupon state in store
       couponCode: undefined,

@@ -132,6 +132,7 @@ export async function getOrders() {
 
 export async function createOrder(data: {
   userId?: string;
+  userEmail?: string;
   shippingAddress: string;
   discountApplied?: number;
   couponCode?: string;
@@ -167,11 +168,20 @@ export async function createOrder(data: {
         });
       }
 
-      // 2. Verify if userId exists and is not a mock ID to prevent foreign key constraint failures
+      // 2. Verify if userId exists or resolve from userEmail to prevent foreign key constraint failures
       let finalUserId: string | null = null;
       if (data.userId && !data.userId.startsWith('mock-')) {
         const user = await tx.user.findUnique({
           where: { id: data.userId },
+        });
+        if (user) {
+          finalUserId = user.id;
+        }
+      }
+
+      if (!finalUserId && data.userEmail) {
+        const user = await tx.user.findUnique({
+          where: { email: data.userEmail.toLowerCase() },
         });
         if (user) {
           finalUserId = user.id;
@@ -328,7 +338,7 @@ export async function registerPartner(data: {
     const partner = await db.partner.create({
       data: {
         fullName: data.fullName,
-        email: data.email,
+        email: data.email.toLowerCase(),
         phone: data.phone,
         companyName: data.companyName || null,
         tier: data.tier,
@@ -394,7 +404,7 @@ export async function submitInvestorLead(data: {
     const lead = await db.investorLead.create({
       data: {
         fullName: data.fullName,
-        email: data.email,
+        email: data.email.toLowerCase(),
         phone: data.phone,
         investmentRange: data.investmentRange,
         accreditedStatus: data.accreditedStatus,
@@ -459,7 +469,7 @@ export async function submitCareersApplication(data: {
     const app = await db.employeeApplication.create({
       data: {
         fullName: data.fullName,
-        email: data.email,
+        email: data.email.toLowerCase(),
         phone: data.phone,
         position: data.position,
         resumeUrl: data.resumeUrl || null,
@@ -540,7 +550,7 @@ export async function registerCustomer(data: {
 }) {
   try {
     const existingUser = await db.user.findUnique({
-      where: { email: data.email },
+      where: { email: data.email.toLowerCase() },
     });
     if (existingUser) {
       return { success: false, error: 'A user with this email already exists.' };
@@ -549,7 +559,7 @@ export async function registerCustomer(data: {
     const user = await db.user.create({
       data: {
         name: data.name,
-        email: data.email,
+        email: data.email.toLowerCase(),
         password: data.password,
         role: 'USER',
       },
@@ -562,7 +572,7 @@ export async function registerCustomer(data: {
 }
 
 export async function updateUserProfile(
-  userId: string,
+  userEmailOrId: string,
   data: {
     name?: string;
     phone?: string;
@@ -573,8 +583,23 @@ export async function updateUserProfile(
   }
 ) {
   try {
+    if (!userEmailOrId) {
+      return { success: false, error: 'User ID or Email is required' };
+    }
+    const normalized = userEmailOrId.toLowerCase();
+    const userRecord = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!userRecord) {
+      return { success: false, error: 'User not found' };
+    }
     const user = await db.user.update({
-      where: { id: userId },
+      where: { id: userRecord.id },
       data: {
         name: data.name,
         phone: data.phone,
@@ -591,10 +616,21 @@ export async function updateUserProfile(
   }
 }
 
-export async function getUserOrders(userId: string) {
+export async function getUserOrders(userEmailOrId: string) {
   try {
+    if (!userEmailOrId) return [];
+    const normalized = userEmailOrId.toLowerCase();
+    const user = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!user) return [];
     return await db.order.findMany({
-      where: { userId },
+      where: { userId: user.id },
       include: {
         items: {
           include: {
@@ -830,10 +866,25 @@ export async function deleteInvestor(id: string) {
 // 9. MULTI-ROLE DASHBOARD ACTIONS
 // ==========================================
 
-export async function getUserDashboardRoles(userId: string) {
+export async function getUserDashboardRoles(userEmailOrId: string) {
   try {
+    if (!userEmailOrId) {
+      return { success: false, error: 'User ID or Email is required' };
+    }
+    const normalized = userEmailOrId.toLowerCase();
+    const userRecord = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!userRecord) {
+      return { success: false, error: 'User not found' };
+    }
     const user = await db.user.findUnique({
-      where: { id: userId },
+      where: { id: userRecord.id },
       include: {
         farmer: {
           include: {
@@ -861,7 +912,7 @@ export async function getUserDashboardRoles(userId: string) {
   }
 }
 
-export async function requestFarmerRole(userId: string, data: {
+export async function requestFarmerRole(userEmailOrId: string, data: {
   fullName: string;
   phone: string;
   state: string;
@@ -874,8 +925,24 @@ export async function requestFarmerRole(userId: string, data: {
     if (data.state !== 'Rajasthan') {
       throw new Error("Farmer program registration is currently restricted to Rajasthan only.");
     }
+    if (!userEmailOrId) {
+      throw new Error("User ID or Email is required.");
+    }
+    const normalized = userEmailOrId.toLowerCase();
+    const userRecord = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!userRecord) {
+      throw new Error("User profile not found in database.");
+    }
+
     const existingFarmer = await db.farmer.findFirst({
-      where: { userId },
+      where: { userId: userRecord.id },
     });
     if (existingFarmer) {
       throw new Error("You have already submitted a farmer application.");
@@ -891,7 +958,7 @@ export async function requestFarmerRole(userId: string, data: {
         primaryCrops: data.primaryCrops,
         procurementModel: data.procurementModel,
         status: 'PENDING',
-        userId: userId,
+        userId: userRecord.id,
       },
     });
     revalidatePath('/account');
@@ -910,7 +977,7 @@ export async function requestFarmerRole(userId: string, data: {
   }
 }
 
-export async function requestPartnerRole(userId: string, data: {
+export async function requestPartnerRole(userEmailOrId: string, data: {
   fullName: string;
   email: string;
   phone: string;
@@ -920,8 +987,24 @@ export async function requestPartnerRole(userId: string, data: {
   investmentBudget: number;
 }) {
   try {
+    if (!userEmailOrId) {
+      throw new Error("User ID or Email is required.");
+    }
+    const normalized = userEmailOrId.toLowerCase();
+    const userRecord = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!userRecord) {
+      throw new Error("User profile not found in database.");
+    }
+
     const existingPartner = await db.partner.findFirst({
-      where: { userId },
+      where: { userId: userRecord.id },
     });
     if (existingPartner) {
       throw new Error("You have already submitted a partner application.");
@@ -937,7 +1020,7 @@ export async function requestPartnerRole(userId: string, data: {
         experienceYears: Number(data.experienceYears),
         investmentBudget: Number(data.investmentBudget),
         status: 'PENDING',
-        userId: userId,
+        userId: userRecord.id,
       },
     });
     revalidatePath('/account');
@@ -955,7 +1038,7 @@ export async function requestPartnerRole(userId: string, data: {
   }
 }
 
-export async function requestInvestorRole(userId: string, data: {
+export async function requestInvestorRole(userEmailOrId: string, data: {
   fullName: string;
   email: string;
   phone: string;
@@ -964,8 +1047,24 @@ export async function requestInvestorRole(userId: string, data: {
   message?: string;
 }) {
   try {
+    if (!userEmailOrId) {
+      throw new Error("User ID or Email is required.");
+    }
+    const normalized = userEmailOrId.toLowerCase();
+    const userRecord = await db.user.findFirst({
+      where: {
+        OR: [
+          { id: userEmailOrId },
+          { email: normalized }
+        ]
+      }
+    });
+    if (!userRecord) {
+      throw new Error("User profile not found in database.");
+    }
+
     const existingInvestor = await db.investorLead.findFirst({
-      where: { userId },
+      where: { userId: userRecord.id },
     });
     if (existingInvestor) {
       throw new Error("You have already submitted an investor application.");
@@ -980,7 +1079,7 @@ export async function requestInvestorRole(userId: string, data: {
         accreditedStatus: data.accreditedStatus,
         message: data.message || null,
         status: 'NEW',
-        userId: userId,
+        userId: userRecord.id,
       },
     });
     revalidatePath('/account');

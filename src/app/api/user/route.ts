@@ -5,13 +5,14 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
+    const email = searchParams.get('email');
 
-    if (!id) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    if (!id && !email) {
+      return NextResponse.json({ error: 'User ID or Email is required' }, { status: 400 });
     }
 
     const user = await db.user.findUnique({
-      where: { id },
+      where: id ? { id } : { email: email!.toLowerCase() },
       select: {
         id: true,
         name: true,

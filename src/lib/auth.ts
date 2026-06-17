@@ -12,14 +12,15 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
-
-        const isEmailAdmin = credentials.email.includes('admin');
-        const defaultName = credentials.email.split('@')[0];
+        
+        const emailNormalized = credentials.email.toLowerCase();
+        const isEmailAdmin = emailNormalized.includes('admin');
+        const defaultName = emailNormalized.split('@')[0];
 
         try {
           // Try to find the user
           const user = await db.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: emailNormalized },
           });
 
           if (!user) {
@@ -45,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: isEmailAdmin ? 'mock-admin-id' : 'mock-user-id',
             name: defaultName.charAt(0).toUpperCase() + defaultName.slice(1),
-            email: credentials.email,
+            email: emailNormalized,
             role: isEmailAdmin ? 'ADMIN' : 'USER',
           };
         }

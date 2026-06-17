@@ -161,14 +161,19 @@ function AccountContent() {
     setOrdersLoading(true);
     setRolesLoading(true);
     try {
-      const userId = (session.user as any).id;
-      const userOrders = await getUserOrders(userId);
+      const userEmail = session.user.email;
+      if (!userEmail) return;
+
+      const userOrders = await getUserOrders(userEmail);
       setOrders(userOrders as any);
 
       // Get profile details directly from session if present
       setName(session.user.name || '');
 
-      const res = await fetch(`/api/user?id=${userId}`);
+      // Try fetching by ID first, fallback to email if ID is missing or mock
+      const userId = (session.user as any).id;
+      const queryParam = (userId && !userId.startsWith('mock-')) ? `id=${userId}` : `email=${encodeURIComponent(userEmail)}`;
+      const res = await fetch(`/api/user?${queryParam}`);
       if (res.ok) {
         const dbUser = await res.json();
         if (dbUser) {
@@ -181,7 +186,7 @@ function AccountContent() {
       }
 
       // Load linked roles
-      const rolesRes = await getUserDashboardRoles(userId);
+      const rolesRes = await getUserDashboardRoles(userEmail);
       if (rolesRes.success && rolesRes.roles) {
         setDashboardRoles(rolesRes.roles);
       }
@@ -204,7 +209,10 @@ function AccountContent() {
     setProfileError('');
 
     try {
-      const res = await updateUserProfile((session?.user as any).id, {
+      const userEmail = session?.user?.email;
+      if (!userEmail) throw new Error("Not logged in");
+
+      const res = await updateUserProfile(userEmail, {
         name,
         phone,
         address,
@@ -256,8 +264,10 @@ function AccountContent() {
     setRequestSuccess('');
     setRequestError('');
     try {
-      const userId = (session?.user as any).id;
-      const res = await requestFarmerRole(userId, {
+      const userEmail = session?.user?.email;
+      if (!userEmail) throw new Error("You must be logged in.");
+
+      const res = await requestFarmerRole(userEmail, {
         fullName: farmerFullName,
         phone: farmerPhone,
         state: farmerState,
@@ -294,8 +304,10 @@ function AccountContent() {
     setRequestSuccess('');
     setRequestError('');
     try {
-      const userId = (session?.user as any).id;
-      const res = await requestPartnerRole(userId, {
+      const userEmail = session?.user?.email;
+      if (!userEmail) throw new Error("You must be logged in.");
+
+      const res = await requestPartnerRole(userEmail, {
         fullName: partnerFullName,
         email: partnerEmail,
         phone: partnerPhone,
@@ -331,8 +343,10 @@ function AccountContent() {
     setRequestSuccess('');
     setRequestError('');
     try {
-      const userId = (session?.user as any).id;
-      const res = await requestInvestorRole(userId, {
+      const userEmail = session?.user?.email;
+      if (!userEmail) throw new Error("You must be logged in.");
+
+      const res = await requestInvestorRole(userEmail, {
         fullName: investorFullName,
         email: investorEmail,
         phone: investorPhone,
